@@ -57,8 +57,106 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// Endpoint lấy danh sách danh mục sản phẩm
+app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await prisma.product.findMany({
+      select: { category: true },
+      distinct: ['category']
+    });
+    const list = categories.map((c) => c.category);
+    return res.json({
+      status: 'ok',
+      data: ['Tất cả', ...list]
+    });
+  } catch (err) {
+    console.error('❌ Lỗi lấy categories:', err.message);
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Endpoint lấy danh sách sản phẩm (có lọc category và tìm kiếm search)
+app.get('/api/products', async (req, res) => {
+  try {
+    const { category, search, sort } = req.query;
+    const where = {};
+
+    // Lọc theo danh mục nếu có
+    if (category && category !== 'Tất cả') {
+      where.category = category;
+    }
+
+    // Tìm kiếm theo từ khóa nếu có
+    if (search && search.trim() !== '') {
+      where.OR = [
+        { name: { contains: search.trim() } },
+        { description: { contains: search.trim() } }
+      ];
+    }
+
+    // Sắp xếp
+    let orderBy = { id: 'asc' };
+    if (sort === 'price_asc') orderBy = { price: 'asc' };
+    if (sort === 'price_desc') orderBy = { price: 'desc' };
+    if (sort === 'newest') orderBy = { createdAt: 'desc' };
+
+    const products = await prisma.product.findMany({
+      where,
+      orderBy
+    });
+
+    const formatted = products.map((p) => ({
+      ...p,
+      price: Number(p.price)
+    }));
+
+    return res.json({
+      status: 'ok',
+      total: formatted.length,
+      data: formatted
+    });
+  } catch (err) {
+    console.error('❌ Lỗi lấy danh sách sản phẩm:', err.message);
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Endpoint lấy chi tiết 1 sản phẩm theo ID
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ status: 'error', message: 'ID sản phẩm không hợp lệ' });
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id }
+    });
+
+    if (!product) {
+      return res.status(404).json({
+        status: 'error',
+        message: `Không tìm thấy sản phẩm có ID = ${id}`
+      });
+    }
+
+    return res.json({
+      status: 'ok',
+      data: {
+        ...product,
+        price: Number(product.price)
+      }
+    });
+  } catch (err) {
+    console.error('❌ Lỗi lấy chi tiết sản phẩm:', err.message);
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 TechStore Backend running at: http://localhost:${PORT}`);
   console.log(`🩺 Health check URL: http://localhost:${PORT}/api/health`);
+  console.log(`📦 Products API URL: http://localhost:${PORT}/api/products`);
 });
+
