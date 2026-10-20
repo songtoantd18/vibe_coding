@@ -31,7 +31,9 @@
 ## 3. Các lệnh cơ bản dự kiến (Development Commands)
 - **Backend:**
   - Cài đặt: `cd backend && npm install`
-  - Chạy dev server: `npm run dev` (hoặc `node server.js` / `nodemon`)
+  - Chạy cả Server và Prisma Studio song song: `npm run dev` (Express tại :5000 và Studio tại :5555)
+  - Chạy riêng Server: `npm run server`
+  - Chạy riêng Prisma Studio: `npm run studio`
   - Health check: `GET http://localhost:5000/api/health`
 - **Frontend:**
   - Cài đặt: `cd frontend && npm install`
