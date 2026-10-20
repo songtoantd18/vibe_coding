@@ -9,7 +9,7 @@ Tài liệu này chia dự án thành **5 lát cắt độc lập (slices)**.
 
 | Lát | Tên lát cắt | Kết quả đạt được | Kiểm bằng cách | Trạng thái |
 | :---: | :--- | :--- | :--- | :---: |
-| **1** | **Khởi tạo nền tảng (Foundation)** | Monorepo (Vue 2 + Express), Health check API, cấu trúc `data/` | Gọi `GET /api/health` trả `status: ok, store: ready`; Vue 2 chạy lên hiển thị trang chào | 🟡 Đang lập kế hoạch |
+| **1** | **Khởi tạo nền tảng (Foundation)** | Monorepo (Vue 2.7 + Express), Health check API, Prisma + Aiven MySQL | `GET /api/health` trả `status: ok`, kết nối Aiven MySQL thành công | 🟢 Đã hoàn thành |
 | **2** | **Dữ liệu & API Sản phẩm (Product Catalog API)** | File `products.json` (6+ món kèm thông số kỹ thuật), Express REST API | Gọi `GET /api/products` và `GET /api/products/:id` trả về đúng danh sách sản phẩm | ⚪ Chờ thực hiện |
 | **3** | **Giao diện Cửa hàng (Frontend Catalog)** | Trang chủ, danh mục, chi tiết sản phẩm kèm bảng thông số kỹ thuật | Duyệt web trên Desktop & Mobile 375px: lọc danh mục, xem bảng specs rõ ràng | ⚪ Chờ thực hiện |
 | **4** | **Giỏ hàng & Đặt hàng COD (Cart & Checkout)** | Quản lý giỏ hàng Vuex, Form đặt hàng COD, API lưu đơn vào `orders.json` | Thêm món -> Giỏ hàng -> Đặt hàng -> File `orders.json` có đơn mới -> Hiện trang thành công | ⚪ Chờ thực hiện |
