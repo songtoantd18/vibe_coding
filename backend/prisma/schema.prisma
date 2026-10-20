@@ -21,3 +21,21 @@ model Product {
 
   @@map("techstore_products")
 }
+
+// Model đơn hàng COD cho TechStore
+model Order {
+  id             Int      @id @default(autoincrement())
+  orderCode      String   @unique @map("order_code") @db.VarChar(50)
+  customerName   String   @map("customer_name") @db.VarChar(150)
+  phone          String   @db.VarChar(20)
+  address        String   @db.VarChar(500)
+  notes          String?  @db.Text
+  items          Json
+  totalAmount    Decimal  @map("total_amount") @db.Decimal(12, 2)
+  paymentMethod  String   @default("COD") @map("payment_method") @db.VarChar(50)
+  status         String   @default("PENDING") @db.VarChar(50)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("techstore_orders")
+}

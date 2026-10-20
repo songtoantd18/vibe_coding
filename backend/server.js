@@ -153,10 +153,107 @@ app.get('/api/products/:id', async (req, res) => {
   }
 });
 
+// Endpoint tạo đơn hàng mới (Thanh toán COD)
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { customerName, phone, address, notes, items } = req.body;
+
+    // 1. Kiểm tra tính hợp lệ của dữ liệu đầu vào
+    if (!customerName || customerName.trim() === '') {
+      return res.status(400).json({ status: 'error', message: 'Vui lòng nhập họ và tên người nhận.' });
+    }
+
+    if (!phone || !/^[0-9+() -]{9,15}$/.test(phone.trim())) {
+      return res.status(400).json({ status: 'error', message: 'Vui lòng nhập số điện thoại nhận hàng hợp lệ (ít nhất 9-11 chữ số).' });
+    }
+
+    if (!address || address.trim() === '') {
+      return res.status(400).json({ status: 'error', message: 'Vui lòng nhập địa chỉ giao hàng cụ thể.' });
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ status: 'error', message: 'Giỏ hàng của bạn đang trống, không thể tạo đơn hàng.' });
+    }
+
+    // 2. Tính toán tổng tiền an toàn từ danh sách món
+    let total = 0;
+    const sanitizedItems = items.map((item) => {
+      const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+      const price = Number(item.price) || 0;
+      total += price * qty;
+      return {
+        productId: item.productId || item.id,
+        name: item.name,
+        price,
+        quantity: qty,
+        image: item.image || ''
+      };
+    });
+
+    // 3. Tạo mã đơn hàng ngẫu nhiên dễ nhớ (ví dụ: DH-849201)
+    const orderCode = `DH-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    // 4. Lưu đơn hàng vào bảng techstore_orders trên Aiven MySQL qua Prisma
+    const newOrder = await prisma.order.create({
+      data: {
+        orderCode,
+        customerName: customerName.trim(),
+        phone: phone.trim(),
+        address: address.trim(),
+        notes: notes ? notes.trim() : '',
+        items: sanitizedItems,
+        totalAmount: total,
+        paymentMethod: 'COD',
+        status: 'PENDING'
+      }
+    });
+
+    console.log(`🎉 ĐƠN HÀNG MỚI ĐÃ TẠO: [${newOrder.orderCode}] Khách: ${newOrder.customerName} - ${total.toLocaleString('vi-VN')} đ`);
+
+    return res.status(201).json({
+      status: 'ok',
+      message: 'Đặt hàng COD thành công!',
+      orderCode: newOrder.orderCode,
+      data: {
+        ...newOrder,
+        totalAmount: Number(newOrder.totalAmount)
+      }
+    });
+  } catch (err) {
+    console.error('❌ Lỗi tạo đơn hàng:', err.message);
+    return res.status(500).json({ status: 'error', message: 'Lỗi máy chủ khi tạo đơn: ' + err.message });
+  }
+});
+
+// Endpoint lấy danh sách đơn hàng (cho trang Quản trị)
+app.get('/api/orders', async (req, res) => {
+  try {
+    const orders = await prisma.order.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const formatted = orders.map((o) => ({
+      ...o,
+      totalAmount: Number(o.totalAmount)
+    }));
+
+    return res.json({
+      status: 'ok',
+      total: formatted.length,
+      data: formatted
+    });
+  } catch (err) {
+    console.error('❌ Lỗi lấy danh sách đơn hàng:', err.message);
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 TechStore Backend running at: http://localhost:${PORT}`);
   console.log(`🩺 Health check URL: http://localhost:${PORT}/api/health`);
   console.log(`📦 Products API URL: http://localhost:${PORT}/api/products`);
+  console.log(`📝 Orders API URL: http://localhost:${PORT}/api/orders`);
 });
+
 

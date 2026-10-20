@@ -33,13 +33,21 @@
 
         <!-- Header Actions -->
         <div class="header-actions">
-          <div class="cart-pill" title="Giỏ hàng sẽ hoàn thiện trong Lát 4">
+          <!-- Cart Pill Button -->
+          <div 
+            id="btn-cart" 
+            class="cart-pill" 
+            title="Mở Giỏ Hàng" 
+            @click="isCartOpen = true"
+          >
             <span class="cart-icon">🛒</span>
-            <span class="cart-badge">{{ cartItems.length }}</span>
+            <span class="cart-badge">{{ totalCartQuantity }}</span>
           </div>
+
+          <!-- Slice Indicator Badge -->
           <div class="slice-badge">
             <span class="badge-dot"></span>
-            Lát 3: Giao diện Cửa hàng
+            Lát 4: Giỏ hàng & COD
           </div>
         </div>
       </div>
@@ -49,7 +57,7 @@
     <main class="main-content">
       <!-- Hero Banner -->
       <section class="store-hero">
-        <div class="hero-badge">🌟 Thiết bị công nghệ chính hãng • Bảo hành 12-24 tháng</div>
+        <div class="hero-badge">🌟 Thiết bị công nghệ chính hãng • Hỗ trợ giao hàng COD toàn quốc</div>
         <h1 class="hero-title">Thiết Bị Điện Tử & Công Nghệ Hàng Đầu</h1>
         <p class="hero-desc">
           Khám phá các sản phẩm Apple, Samsung, Dell, Logitech chính hãng. Dữ liệu thời gian thực được đồng bộ trực tiếp từ <strong>Aiven Cloud MySQL</strong>.
@@ -105,7 +113,7 @@
           :key="product.id" 
           :product="product"
           @view-details="openModal"
-          @buy-click="handleBuyClick"
+          @buy-click="addToCart"
         />
       </section>
 
@@ -128,7 +136,24 @@
       <ProductModal 
         :product="selectedProduct" 
         @close="selectedProduct = null"
-        @buy-click="handleBuyClick"
+        @buy-click="addToCart"
+      />
+
+      <!-- Cart & COD Drawer (Slice 4) -->
+      <CartDrawer 
+        :is-open="isCartOpen" 
+        :cart="cart"
+        @close="isCartOpen = false"
+        @increase-qty="increaseQty"
+        @decrease-qty="decreaseQty"
+        @remove-item="removeItem"
+        @order-success="handleOrderSuccess"
+      />
+
+      <!-- Order Success Celebration Modal -->
+      <OrderSuccessModal 
+        :order="placedOrder"
+        @close="placedOrder = null"
       />
     </main>
 
@@ -137,7 +162,7 @@
       <div class="footer-inner">
         <p>© 2026 TechStore • Xây dựng theo phương pháp <strong>Vibe Coding</strong> với Vue 2.7, Node.js & Aiven MySQL.</p>
         <div class="footer-meta">
-          <span>Backend API: <code>http://localhost:5000/api/products</code></span>
+          <span>Backend API: <code>http://localhost:5000/api/orders</code></span>
           <span>Database: <code>Aiven Cloud (techstore_db)</code></span>
         </div>
       </div>
@@ -148,12 +173,16 @@
 <script>
 import ProductCard from './components/ProductCard.vue';
 import ProductModal from './components/ProductModal.vue';
+import CartDrawer from './components/CartDrawer.vue';
+import OrderSuccessModal from './components/OrderSuccessModal.vue';
 
 export default {
   name: 'App',
   components: {
     ProductCard,
-    ProductModal
+    ProductModal,
+    CartDrawer,
+    OrderSuccessModal
   },
   data() {
     return {
@@ -165,11 +194,16 @@ export default {
       loading: true,
       error: null,
       selectedProduct: null,
-      cartItems: [],
+      isCartOpen: false,
+      cart: [],
+      placedOrder: null,
       toastMessage: ''
     };
   },
   computed: {
+    totalCartQuantity() {
+      return this.cart.reduce((sum, item) => sum + item.quantity, 0);
+    },
     filteredProducts() {
       let result = [...this.products];
 
@@ -199,7 +233,25 @@ export default {
       return result;
     }
   },
+  watch: {
+    cart: {
+      deep: true,
+      handler(newCart) {
+        localStorage.setItem('techstore_cart', JSON.stringify(newCart));
+      }
+    }
+  },
   mounted() {
+    // Khôi phục giỏ hàng từ localStorage nếu có
+    try {
+      const saved = localStorage.getItem('techstore_cart');
+      if (saved) {
+        this.cart = JSON.parse(saved);
+      }
+    } catch (e) {
+      this.cart = [];
+    }
+
     this.fetchCategories();
     this.fetchProducts();
   },
@@ -243,18 +295,56 @@ export default {
       this.searchKeyword = '';
       this.sortOption = 'default';
     },
-    handleBuyClick(product) {
-      this.cartItems.push(product);
-      this.showToast(`Đã thêm "${product.name}" vào giỏ hàng! (Sẽ hoàn thiện trang Giỏ hàng ở Lát 4)`);
+    addToCart(product) {
+      const existing = this.cart.find((i) => i.productId === product.id);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        this.cart.push({
+          productId: product.id,
+          name: product.name,
+          price: Number(product.price),
+          image: product.image,
+          quantity: 1
+        });
+      }
+
+      this.showToast(`Đã thêm "${product.name}" vào giỏ hàng!`);
       if (this.selectedProduct) {
         this.selectedProduct = null;
       }
+      // Mở ngăn kéo giỏ hàng để khách dễ theo dõi
+      this.isCartOpen = true;
+    },
+    increaseQty(productId) {
+      const item = this.cart.find((i) => i.productId === productId);
+      if (item) {
+        item.quantity += 1;
+      }
+    },
+    decreaseQty(productId) {
+      const item = this.cart.find((i) => i.productId === productId);
+      if (item && item.quantity > 1) {
+        item.quantity -= 1;
+      }
+    },
+    removeItem(productId) {
+      this.cart = this.cart.filter((i) => i.productId !== productId);
+    },
+    handleOrderSuccess(orderResponse) {
+      // 1. Đóng giỏ hàng
+      this.isCartOpen = false;
+      // 2. Làm sạch giỏ hàng
+      this.cart = [];
+      localStorage.removeItem('techstore_cart');
+      // 3. Mở modal thành công
+      this.placedOrder = orderResponse.data;
     },
     showToast(msg) {
       this.toastMessage = msg;
       setTimeout(() => {
         this.toastMessage = '';
-      }, 3500);
+      }, 3000);
     }
   }
 };
@@ -384,8 +474,8 @@ export default {
 
 .cart-pill {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -398,28 +488,31 @@ export default {
 
 .cart-pill:hover {
   border-color: var(--color-accent);
-  transform: translateY(-1px);
+  background-color: var(--bg-card-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
 }
 
 .cart-icon {
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .cart-badge {
   position: absolute;
   top: -4px;
   right: -4px;
-  background-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   color: #ffffff;
-  font-size: 0.7rem;
+  font-size: 0.725rem;
   font-weight: 800;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid var(--bg-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .slice-badge {
@@ -648,7 +741,7 @@ export default {
   color: var(--text-main);
   font-size: 0.9rem;
   font-weight: 600;
-  z-index: 2000;
+  z-index: 2500;
 }
 
 .fade-enter-active, .fade-leave-active {
