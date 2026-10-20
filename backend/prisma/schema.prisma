@@ -7,141 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model appointments {
-  id                                        String              @id @db.VarChar(36)
-  appointment_code                          String              @unique(map: "IDX_b6f79459980d0d8115f9425a33") @db.VarChar(255)
-  clinic_user_id                            String              @db.VarChar(255)
-  patient_user_id                           String              @db.VarChar(255)
-  appointment_time                          DateTime            @db.Timestamp(0)
-  symptoms                                  String?             @db.Text
-  diagnosis                                 String?             @db.Text
-  prescription                              Json?
-  test_results                              String?             @db.Text
-  status                                    appointments_status @default(draft)
-  created_at                                DateTime            @default(now()) @db.DateTime(6)
-  updated_at                                DateTime            @default(now()) @db.DateTime(6)
-  users_appointments_patient_user_idTousers users               @relation("appointments_patient_user_idTousers", fields: [patient_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_8cd86f8376020c81f7b3a65f48d")
-  users_appointments_clinic_user_idTousers  users               @relation("appointments_clinic_user_idTousers", fields: [clinic_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_99c600bc0ae07697bf8fb7a00cb")
+// Model sản phẩm cho TechStore E-commerce
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  category    String   @db.VarChar(100)
+  price       Decimal  @db.Decimal(12, 2)
+  image       String   @db.VarChar(500)
+  description String   @db.Text
+  specs       Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  @@index([patient_user_id], map: "FK_8cd86f8376020c81f7b3a65f48d")
-  @@index([clinic_user_id], map: "FK_99c600bc0ae07697bf8fb7a00cb")
-}
-
-model comment {
-  id         Int      @id @default(autoincrement())
-  content    String   @db.VarChar(255)
-  created_at DateTime @default(now()) @db.DateTime(6)
-  updated_at DateTime @default(now()) @db.DateTime(6)
-  postId     Int?
-  userId     Int?
-  post       post?    @relation(fields: [postId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_94a85bb16d24033a2afdd5df060")
-  user       user?    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_c0354a9a009d3bb45a08655ce3b")
-
-  @@index([postId], map: "FK_94a85bb16d24033a2afdd5df060")
-  @@index([userId], map: "FK_c0354a9a009d3bb45a08655ce3b")
-}
-
-model post {
-  id          Int       @id @default(autoincrement())
-  title       String    @db.VarChar(255)
-  description String    @db.VarChar(255)
-  created_at  DateTime  @default(now()) @db.DateTime(6)
-  updated_at  DateTime  @default(now()) @db.DateTime(6)
-  userId      Int?
-  comment     comment[]
-  user        user?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5c1cf55c308037b5aca1038a131")
-
-  @@index([userId], map: "FK_5c1cf55c308037b5aca1038a131")
-}
-
-model trello_board {
-  id          Int           @id @default(autoincrement())
-  title       String        @db.VarChar(255)
-  description String?       @db.VarChar(255)
-  createdAt   DateTime      @default(now()) @db.DateTime(6)
-  updatedAt   DateTime      @default(now()) @db.DateTime(6)
-  userId      Int?
-  user        user?         @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_221e6ffd93328c9d3395f476e25")
-  trello_list trello_list[]
-
-  @@index([userId], map: "FK_221e6ffd93328c9d3395f476e25")
-}
-
-model trello_card {
-  id          Int          @id @default(autoincrement())
-  title       String       @db.VarChar(255)
-  description String?      @db.VarChar(255)
-  cover_image String?      @db.VarChar(255)
-  deadline    DateTime?    @db.DateTime(0)
-  position    Int          @default(0)
-  createdAt   DateTime     @default(now()) @db.DateTime(6)
-  updatedAt   DateTime     @default(now()) @db.DateTime(6)
-  listId      Int?
-  trello_list trello_list? @relation(fields: [listId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_e11487e54706cec40683e49ade9")
-
-  @@index([listId], map: "FK_e11487e54706cec40683e49ade9")
-}
-
-model trello_list {
-  id           Int           @id @default(autoincrement())
-  title        String        @db.VarChar(255)
-  position     Int           @default(0)
-  createdAt    DateTime      @default(now()) @db.DateTime(6)
-  updatedAt    DateTime      @default(now()) @db.DateTime(6)
-  boardId      Int?
-  trello_card  trello_card[]
-  trello_board trello_board? @relation(fields: [boardId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_130a71ea4ffa426117b81a95696")
-
-  @@index([boardId], map: "FK_130a71ea4ffa426117b81a95696")
-}
-
-model user {
-  id           Int            @id @default(autoincrement())
-  email        String         @db.VarChar(255)
-  firstName    String         @db.VarChar(255)
-  lastName     String         @db.VarChar(255)
-  role         String         @default("user") @db.VarChar(255)
-  password     String         @db.VarChar(255)
-  comment      comment[]
-  post         post[]
-  trello_board trello_board[]
-}
-
-model users {
-  id                                               String         @id @db.VarChar(36)
-  email                                            String         @unique(map: "IDX_97672ac88f789774dd47f7c8be") @db.VarChar(255)
-  password                                         String?        @db.VarChar(255)
-  role                                             users_role
-  google_id                                        String?        @db.VarChar(255)
-  is_active                                        Int            @default(1) @db.TinyInt
-  full_name                                        String?        @db.VarChar(255)
-  id_number                                        String?        @db.VarChar(255)
-  date_of_birth                                    DateTime?      @db.Date
-  profile_completed                                Int            @default(0) @db.TinyInt
-  clinic_name                                      String?        @db.VarChar(255)
-  description                                      String?        @db.Text
-  specialties                                      String?        @db.Text
-  working_hours                                    Json?
-  images                                           String?        @db.Text
-  doctor_info                                      String?        @db.Text
-  notification_settings                            Json?
-  phone                                            String?        @db.VarChar(255)
-  address                                          String?        @db.VarChar(255)
-  created_at                                       DateTime       @default(now()) @db.DateTime(6)
-  updated_at                                       DateTime       @default(now()) @db.DateTime(6)
-  appointments_appointments_patient_user_idTousers appointments[] @relation("appointments_patient_user_idTousers")
-  appointments_appointments_clinic_user_idTousers  appointments[] @relation("appointments_clinic_user_idTousers")
-}
-
-enum users_role {
-  clinic
-  patient
-}
-
-enum appointments_status {
-  draft
-  pending
-  confirmed
-  completed
-  cancelled
+  @@map("techstore_products")
 }
