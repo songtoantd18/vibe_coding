@@ -1,224 +1,260 @@
 <template>
   <div id="app" class="app-container">
-    <!-- Navigation Bar -->
+    <!-- Navigation Header -->
     <header class="header">
       <div class="header-inner">
-        <div class="brand">
+        <!-- Logo -->
+        <div class="brand" @click="resetFilters">
           <div class="brand-icon">⚡</div>
           <div class="brand-text">
             <span class="brand-title">TechStore</span>
-            <span class="brand-subtitle">E-commerce Platform</span>
+            <span class="brand-subtitle">Digital & Electronics</span>
           </div>
         </div>
-        <div class="slice-badge">
-          <span class="badge-dot"></span>
-          Lát 1: Nền tảng Monorepo
+
+        <!-- Search Bar in Header -->
+        <div class="search-container">
+          <span class="search-icon">🔍</span>
+          <input 
+            v-model="searchKeyword" 
+            type="text" 
+            placeholder="Tìm theo tên sản phẩm, chip, cấu hình..." 
+            class="search-input"
+          />
+          <button 
+            v-if="searchKeyword" 
+            type="button" 
+            class="btn-clear-search" 
+            @click="searchKeyword = ''"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="header-actions">
+          <div class="cart-pill" title="Giỏ hàng sẽ hoàn thiện trong Lát 4">
+            <span class="cart-icon">🛒</span>
+            <span class="cart-badge">{{ cartItems.length }}</span>
+          </div>
+          <div class="slice-badge">
+            <span class="badge-dot"></span>
+            Lát 3: Giao diện Cửa hàng
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <main class="main-content">
-      <!-- Hero Section -->
-      <section class="hero-section">
-        <h1 class="hero-title">Khởi Tạo Nền Tảng Dự Án Thành Công</h1>
+      <!-- Hero Banner -->
+      <section class="store-hero">
+        <div class="hero-badge">🌟 Thiết bị công nghệ chính hãng • Bảo hành 12-24 tháng</div>
+        <h1 class="hero-title">Thiết Bị Điện Tử & Công Nghệ Hàng Đầu</h1>
         <p class="hero-desc">
-          Kiến trúc Monorepo kết nối giữa <strong>Vue 2.7 (Vite)</strong>, <strong>Express.js</strong> và 
-          <strong>Aiven Cloud MySQL</strong> thông qua <strong>Prisma ORM</strong>.
+          Khám phá các sản phẩm Apple, Samsung, Dell, Logitech chính hãng. Dữ liệu thời gian thực được đồng bộ trực tiếp từ <strong>Aiven Cloud MySQL</strong>.
         </p>
       </section>
 
-      <!-- Architecture Status Grid -->
-      <section class="status-grid">
-        <!-- Card 1: Frontend -->
-        <div class="status-card active">
-          <div class="card-icon">💻</div>
-          <div class="card-info">
-            <h3>Frontend Client</h3>
-            <p class="card-tech">Vue 2.7.16 + Vite 5</p>
-            <div class="card-meta">
-              <span class="pill pill-green">Đang chạy</span>
-              <span class="pill pill-gray">Port 3000</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 2: Backend -->
-        <div class="status-card" :class="{ active: isBackendUp }">
-          <div class="card-icon">⚙️</div>
-          <div class="card-info">
-            <h3>Backend Server</h3>
-            <p class="card-tech">Node.js + Express.js</p>
-            <div class="card-meta">
-              <span class="pill" :class="isBackendUp ? 'pill-green' : 'pill-yellow'">
-                {{ isBackendUp ? 'Đã kết nối' : 'Cổng 5000' }}
-              </span>
-              <span class="pill pill-gray">CORS Enabled</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 3: Database -->
-        <div class="status-card" :class="{ active: isDbUp }">
-          <div class="card-icon">🗄️</div>
-          <div class="card-info">
-            <h3>Cloud Database</h3>
-            <p class="card-tech">Aiven MySQL (Prisma ORM)</p>
-            <div class="card-meta">
-              <span class="pill" :class="isDbUp ? 'pill-green' : 'pill-yellow'">
-                {{ isDbUp ? 'Đã thông SSL' : 'Singapore (sgp)' }}
-              </span>
-              <span class="pill pill-gray">SSL Required</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Interactive Health Check Test Section -->
-      <section class="test-section">
-        <div class="test-header">
-          <div>
-            <h2>Kiểm Tra Nhịp Tim Hệ Thống (Health Check)</h2>
-            <p class="test-subtitle">
-              Bấm nút bên dưới để Frontend gửi yêu cầu tới <code>GET /api/health</code> của Backend và kiểm tra kết nối tới Aiven Cloud MySQL.
-            </p>
-          </div>
+      <!-- Category Filter Tabs & Controls -->
+      <section class="controls-section">
+        <div class="category-tabs">
           <button 
-            id="btn-health-check" 
-            class="btn-primary" 
-            :disabled="loading" 
-            @click="runHealthCheck"
+            v-for="cat in categories" 
+            :key="cat" 
+            type="button" 
+            class="tab-btn" 
+            :class="{ active: selectedCategory === cat }"
+            @click="selectedCategory = cat"
           >
-            <span v-if="loading" class="spinner"></span>
-            <span v-else>🩺 Kiểm Tra Kết Nối Ngay</span>
+            {{ cat }}
+            <span class="cat-count" v-if="cat === 'Tất cả'">{{ products.length }}</span>
+            <span class="cat-count" v-else>{{ countByCategory(cat) }}</span>
           </button>
         </div>
 
-        <!-- Result Box -->
-        <div v-if="checkResult" class="result-box" :class="checkResult.status === 'ok' ? 'success' : 'error'">
-          <div class="result-top">
-            <div class="result-status-tag">
-              <span class="status-indicator"></span>
-              <strong>{{ checkResult.status === 'ok' ? 'HỆ THỐNG SỐNG KHỎE (200 OK)' : 'CẢNH BÁO KẾT NỐI' }}</strong>
-            </div>
-            <div class="result-latency" v-if="checkResult.latencyMs !== undefined">
-              Độ trễ: <strong>{{ checkResult.latencyMs }}ms</strong>
-            </div>
-          </div>
-
-          <div class="result-details">
-            <div class="detail-row">
-              <span class="detail-label">Dịch vụ:</span>
-              <span class="detail-val">{{ checkResult.service }}</span>
-            </div>
-            <div class="detail-row" v-if="checkResult.database">
-              <span class="detail-label">Cơ sở dữ liệu:</span>
-              <span class="detail-val">{{ checkResult.database.provider }} ({{ checkResult.database.status }})</span>
-            </div>
-            <div class="detail-row" v-if="checkResult.database">
-              <span class="detail-label">Máy chủ Cloud:</span>
-              <span class="detail-val code-text">{{ checkResult.database.host }}</span>
-            </div>
-            <div class="detail-row" v-if="checkResult.error">
-              <span class="detail-label text-error">Chi tiết lỗi:</span>
-              <span class="detail-val text-error">{{ checkResult.error }}</span>
-            </div>
-          </div>
-
-          <!-- Raw JSON view -->
-          <details class="json-details">
-            <summary>Xem dữ liệu JSON gốc trả về</summary>
-            <pre class="json-code">{{ JSON.stringify(checkResult, null, 2) }}</pre>
-          </details>
+        <!-- Sort Option Dropdown -->
+        <div class="sort-wrap">
+          <label for="sort-select" class="sort-label">Sắp xếp:</label>
+          <select id="sort-select" v-model="sortOption" class="sort-select">
+            <option value="default">Mặc định</option>
+            <option value="price_asc">Giá: Thấp đến Cao</option>
+            <option value="price_desc">Giá: Cao đến Thấp</option>
+          </select>
         </div>
       </section>
 
-      <!-- Checklist Section -->
-      <section class="checklist-section">
-        <h3>📋 Tiêu Chí Nghiệm Thu Lát 1 (Acceptance Criteria)</h3>
-        <div class="checklist-items">
-          <label class="check-item">
-            <input type="checkbox" checked disabled />
-            <span>Monorepo <code>frontend/</code> (Vue 2.7 Vite) và <code>backend/</code> (Express) độc lập, sạch sẽ.</span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" checked disabled />
-            <span>Biến môi trường bí mật Aiven MySQL được nạp qua file <code>backend/.env</code> và bảo vệ bởi <code>.gitignore</code>.</span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" :checked="isBackendUp" disabled />
-            <span>Backend Express phản hồi endpoint <code>GET /api/health</code> không có lỗi.</span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" :checked="isDbUp" disabled />
-            <span>Prisma ORM kết nối thành công tới máy chủ đám mây Aiven Cloud MySQL (SSL accept).</span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" checked disabled />
-            <span>Giao diện chuẩn Responsive: hiển thị hoàn hảo trên máy tính và điện thoại 375px.</span>
-          </label>
-        </div>
+      <!-- Loading State -->
+      <div v-if="loading" class="loading-state">
+        <div class="loader-spinner"></div>
+        <p>Đang tải dữ liệu sản phẩm từ Aiven Cloud...</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="error-state">
+        <span class="error-icon">⚠️</span>
+        <h3>Không thể tải danh sách sản phẩm</h3>
+        <p>{{ error }}</p>
+        <button type="button" class="btn-retry" @click="fetchProducts">Thử lại ngay</button>
+      </div>
+
+      <!-- Products Grid -->
+      <section v-else-if="filteredProducts.length > 0" class="products-grid">
+        <ProductCard 
+          v-for="product in filteredProducts" 
+          :key="product.id" 
+          :product="product"
+          @view-details="openModal"
+          @buy-click="handleBuyClick"
+        />
       </section>
 
-      <!-- Next Step Banner -->
-      <section class="next-step-box">
-        <div class="next-step-icon">🚀</div>
-        <div>
-          <h4>Sẵn sàng chuyển sang Lát 2: Dữ liệu & API Sản phẩm</h4>
-          <p>
-            Sau khi nghiệm thu Lát 1 và lưu checkpoint Git, Lát 2 sẽ khởi tạo bảng <code>techstore_products</code> trên Aiven MySQL và viết API lấy danh sách sản phẩm.
-          </p>
+      <!-- Empty Filter State -->
+      <div v-else class="empty-state">
+        <div class="empty-icon">🔎</div>
+        <h3>Không tìm thấy sản phẩm phù hợp</h3>
+        <p>Không có sản phẩm nào khớp với từ khóa "<strong>{{ searchKeyword }}</strong>" trong danh mục này.</p>
+        <button type="button" class="btn-reset" @click="resetFilters">Xóa bộ lọc & Xem tất cả</button>
+      </div>
+
+      <!-- Toast Notification for Add to Cart -->
+      <transition name="fade">
+        <div v-if="toastMessage" class="toast-notification">
+          <span>✅ {{ toastMessage }}</span>
         </div>
-      </section>
+      </transition>
+
+      <!-- Product Specification Modal -->
+      <ProductModal 
+        :product="selectedProduct" 
+        @close="selectedProduct = null"
+        @buy-click="handleBuyClick"
+      />
     </main>
 
     <!-- Footer -->
     <footer class="footer">
-      <p>© 2026 TechStore Project • Được xây dựng theo phương pháp <strong>Vibe Coding</strong></p>
+      <div class="footer-inner">
+        <p>© 2026 TechStore • Xây dựng theo phương pháp <strong>Vibe Coding</strong> với Vue 2.7, Node.js & Aiven MySQL.</p>
+        <div class="footer-meta">
+          <span>Backend API: <code>http://localhost:5000/api/products</code></span>
+          <span>Database: <code>Aiven Cloud (techstore_db)</code></span>
+        </div>
+      </div>
     </footer>
   </div>
 </template>
 
 <script>
+import ProductCard from './components/ProductCard.vue';
+import ProductModal from './components/ProductModal.vue';
+
 export default {
   name: 'App',
+  components: {
+    ProductCard,
+    ProductModal
+  },
   data() {
     return {
-      loading: false,
-      isBackendUp: false,
-      isDbUp: false,
-      checkResult: null
+      products: [],
+      categories: ['Tất cả'],
+      selectedCategory: 'Tất cả',
+      searchKeyword: '',
+      sortOption: 'default',
+      loading: true,
+      error: null,
+      selectedProduct: null,
+      cartItems: [],
+      toastMessage: ''
     };
   },
+  computed: {
+    filteredProducts() {
+      let result = [...this.products];
+
+      // 1. Lọc theo danh mục
+      if (this.selectedCategory !== 'Tất cả') {
+        result = result.filter((p) => p.category === this.selectedCategory);
+      }
+
+      // 2. Tìm kiếm theo từ khóa
+      if (this.searchKeyword.trim()) {
+        const kw = this.searchKeyword.trim().toLowerCase();
+        result = result.filter(
+          (p) =>
+            p.name.toLowerCase().includes(kw) ||
+            p.description.toLowerCase().includes(kw) ||
+            (p.specs && JSON.stringify(p.specs).toLowerCase().includes(kw))
+        );
+      }
+
+      // 3. Sắp xếp giá
+      if (this.sortOption === 'price_asc') {
+        result.sort((a, b) => Number(a.price) - Number(b.price));
+      } else if (this.sortOption === 'price_desc') {
+        result.sort((a, b) => Number(b.price) - Number(a.price));
+      }
+
+      return result;
+    }
+  },
   mounted() {
-    // Tự động kiểm tra một lần khi vừa mở trang
-    this.runHealthCheck();
+    this.fetchCategories();
+    this.fetchProducts();
   },
   methods: {
-    async runHealthCheck() {
-      this.loading = true;
+    async fetchCategories() {
       try {
-        const response = await fetch('http://localhost:5000/api/health');
-        const data = await response.json();
-        this.checkResult = data;
-        if (response.ok && data.status === 'ok') {
-          this.isBackendUp = true;
-          this.isDbUp = data.database && data.database.status === 'connected';
-        } else {
-          this.isBackendUp = true;
-          this.isDbUp = false;
+        const res = await fetch('http://localhost:5000/api/categories');
+        const json = await res.json();
+        if (json.status === 'ok') {
+          this.categories = json.data;
         }
       } catch (err) {
-        this.isBackendUp = false;
-        this.isDbUp = false;
-        this.checkResult = {
-          status: 'error',
-          service: 'Không thể kết nối đến Backend tại http://localhost:5000',
-          error: 'Vui lòng kiểm tra xem Backend Express đã được bật bằng lệnh "npm run dev" trong thư mục backend/ chưa.'
-        };
+        console.warn('Chưa lấy được categories:', err.message);
+      }
+    },
+    async fetchProducts() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await fetch('http://localhost:5000/api/products');
+        const json = await res.json();
+        if (json.status === 'ok') {
+          this.products = json.data;
+        } else {
+          this.error = json.message || 'Lỗi lấy danh sách sản phẩm';
+        }
+      } catch (err) {
+        this.error = 'Không thể kết nối đến Backend Express tại http://localhost:5000';
       } finally {
         this.loading = false;
       }
+    },
+    countByCategory(cat) {
+      return this.products.filter((p) => p.category === cat).length;
+    },
+    openModal(product) {
+      this.selectedProduct = product;
+    },
+    resetFilters() {
+      this.selectedCategory = 'Tất cả';
+      this.searchKeyword = '';
+      this.sortOption = 'default';
+    },
+    handleBuyClick(product) {
+      this.cartItems.push(product);
+      this.showToast(`Đã thêm "${product.name}" vào giỏ hàng! (Sẽ hoàn thiện trang Giỏ hàng ở Lát 4)`);
+      if (this.selectedProduct) {
+        this.selectedProduct = null;
+      }
+    },
+    showToast(msg) {
+      this.toastMessage = msg;
+      setTimeout(() => {
+        this.toastMessage = '';
+      }, 3500);
     }
   }
 };
@@ -234,7 +270,7 @@ export default {
 /* Header */
 .header {
   border-bottom: 1px solid var(--border-color);
-  background-color: rgba(15, 23, 42, 0.85);
+  background-color: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
@@ -242,44 +278,148 @@ export default {
 }
 
 .header-inner {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 16px 20px;
+  padding: 14px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 20px;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .brand-icon {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 22px;
   box-shadow: var(--shadow-glow);
 }
 
 .brand-title {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.5px;
-  color: var(--text-main);
+  color: #ffffff;
   display: block;
 }
 
 .brand-subtitle {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--text-dim);
   display: block;
+}
+
+/* Search Container */
+.search-container {
+  flex: 1;
+  max-width: 520px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 14px;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 36px 10px 40px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.875rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+  background-color: var(--bg-card-hover);
+}
+
+.search-input::placeholder {
+  color: var(--text-dim);
+}
+
+.btn-clear-search {
+  position: absolute;
+  right: 12px;
+  background: none;
+  color: var(--text-dim);
+  font-size: 14px;
+  padding: 4px;
+}
+
+.btn-clear-search:hover {
+  color: var(--text-main);
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.cart-pill {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cart-pill:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.cart-icon {
+  font-size: 18px;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-primary);
 }
 
 .slice-badge {
@@ -290,7 +430,7 @@ export default {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
-  font-size: 0.825rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--color-accent);
 }
@@ -312,21 +452,34 @@ export default {
 /* Main Content */
 .main-content {
   flex: 1;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 32px 20px 60px;
   width: 100%;
 }
 
-.hero-section {
+/* Hero Section */
+.store-hero {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 36px;
+}
+
+.hero-badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background-color: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  margin-bottom: 14px;
 }
 
 .hero-title {
-  font-size: 2.25rem;
+  font-size: 2.4rem;
   font-weight: 800;
-  letter-spacing: -0.8px;
+  letter-spacing: -1px;
   margin-bottom: 12px;
   background: linear-gradient(135deg, #ffffff 40%, var(--color-accent) 100%);
   -webkit-background-clip: text;
@@ -340,379 +493,230 @@ export default {
   margin: 0 auto;
 }
 
-/* Status Cards Grid */
-.status-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 36px;
-}
-
-.status-card {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  transition: all 0.25s ease;
-}
-
-.status-card.active {
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-}
-
-.card-icon {
-  font-size: 28px;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-md);
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card-info h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.card-tech {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-}
-
-.card-meta {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.pill {
-  font-size: 0.725rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
-}
-
-.pill-green {
-  background-color: var(--color-success-bg);
-  color: var(--color-success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.pill-yellow {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: var(--color-warning);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.pill-gray {
-  background-color: rgba(255, 255, 255, 0.06);
-  color: var(--text-muted);
-}
-
-/* Test Section */
-.test-section {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 30px;
-  margin-bottom: 36px;
-  box-shadow: var(--shadow-card);
-}
-
-.test-header {
+/* Controls: Category Tabs & Sort */
+.controls-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 30px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.test-header h2 {
-  font-size: 1.35rem;
-  font-weight: 700;
-  margin-bottom: 6px;
+.category-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.test-subtitle {
-  font-size: 0.9rem;
+.tab-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-card);
   color: var(--text-muted);
-}
-
-.test-subtitle code {
-  background-color: rgba(0, 0, 0, 0.3);
-  padding: 2px 6px;
-  border-radius: 4px;
-  color: var(--color-accent);
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-  color: #ffffff;
-  font-size: 0.95rem;
+  border: 1px solid var(--border-color);
+  font-size: 0.875rem;
   font-weight: 600;
-  padding: 12px 24px;
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+.tab-btn:hover {
+  background-color: var(--bg-card-hover);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
-.btn-primary:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.tab-btn.active {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
+.cat-count {
+  font-size: 0.725rem;
+  background-color: rgba(0, 0, 0, 0.25);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+}
+
+.sort-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sort-label {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.sort-select {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.sort-select:focus {
+  border-color: var(--color-accent);
+}
+
+/* Products Grid */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* Loading & Empty States */
+.loading-state,
+.error-state,
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  margin: 20px 0;
+}
+
+.loader-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Result Box */
-.result-box {
-  background-color: var(--bg-primary);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  border-left: 4px solid var(--color-primary);
+.empty-icon,
+.error-icon {
+  font-size: 42px;
+  margin-bottom: 12px;
 }
 
-.result-box.success {
-  border-left-color: var(--color-success);
-  background-color: rgba(16, 185, 129, 0.05);
-}
-
-.result-box.error {
-  border-left-color: var(--color-error);
-  background-color: var(--color-error-bg);
-}
-
-.result-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.result-status-tag {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.95rem;
-}
-
-.status-indicator {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: var(--color-success);
-}
-
-.result-box.error .status-indicator {
-  background-color: var(--color-error);
-}
-
-.result-latency {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.result-latency strong {
-  color: var(--color-accent);
-}
-
-.result-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.detail-row {
-  display: flex;
-  font-size: 0.9rem;
-}
-
-.detail-label {
-  width: 150px;
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.detail-val {
-  color: var(--text-main);
-  word-break: break-all;
-}
-
-.code-text {
-  font-family: monospace;
-  color: var(--color-accent);
-}
-
-.text-error {
-  color: #fca5a5;
-}
-
-.json-details {
-  margin-top: 12px;
-  font-size: 0.85rem;
-}
-
-.json-details summary {
-  color: var(--text-dim);
-  cursor: pointer;
+.empty-state h3,
+.error-state h3 {
+  font-size: 1.2rem;
   margin-bottom: 8px;
 }
 
-.json-details summary:hover {
+.empty-state p,
+.error-state p {
+  font-size: 0.9rem;
   color: var(--text-muted);
+  max-width: 450px;
+  margin: 0 auto 20px;
 }
 
-.json-code {
-  background-color: #050811;
-  padding: 14px;
+.btn-reset,
+.btn-retry {
+  padding: 10px 22px;
+  background: var(--color-primary);
+  color: #ffffff;
   border-radius: var(--radius-sm);
-  color: #38bdf8;
-  font-family: monospace;
-  font-size: 0.8rem;
-  overflow-x: auto;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
-/* Checklist Section */
-.checklist-section {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 26px;
-  margin-bottom: 30px;
-}
-
-.checklist-section h3 {
-  font-size: 1.15rem;
-  margin-bottom: 18px;
-}
-
-.checklist-items {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.check-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  font-size: 0.925rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  cursor: default;
-}
-
-.check-item input[type="checkbox"] {
-  accent-color: var(--color-success);
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
-}
-
-.check-item code {
-  color: var(--color-accent);
-  background-color: rgba(0, 0, 0, 0.25);
-  padding: 1px 5px;
-  border-radius: 4px;
-}
-
-/* Next Step Box */
-.next-step-box {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(56, 189, 248, 0.05));
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.next-step-icon {
-  font-size: 36px;
-  background-color: rgba(59, 130, 246, 0.2);
-  width: 56px;
-  height: 56px;
+/* Toast */
+.toast-notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0f172a;
+  border: 1px solid var(--color-success);
+  border-left: 5px solid var(--color-success);
+  padding: 14px 22px;
   border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.next-step-box h4 {
-  font-size: 1.05rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   color: var(--text-main);
-  margin-bottom: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 2000;
 }
 
-.next-step-box p {
-  font-size: 0.875rem;
-  color: var(--text-muted);
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s, transform 0.3s;
 }
 
-.next-step-box code {
-  color: var(--color-accent);
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
 /* Footer */
 .footer {
   border-top: 1px solid var(--border-color);
-  padding: 20px;
-  text-align: center;
+  background-color: var(--bg-secondary);
+  padding: 30px 20px;
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
   font-size: 0.85rem;
   color: var(--text-dim);
 }
 
+.footer-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-meta code {
+  color: var(--color-accent);
+}
+
 /* Responsive for Mobile 375px */
-@media (max-width: 640px) {
-  .hero-title {
-    font-size: 1.6rem;
+@media (max-width: 768px) {
+  .header-inner {
+    flex-wrap: wrap;
   }
-  .test-header {
+  .search-container {
+    order: 3;
+    max-width: 100%;
+    width: 100%;
+  }
+  .slice-badge {
+    display: none;
+  }
+  .hero-title {
+    font-size: 1.75rem;
+  }
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+  .controls-section {
     flex-direction: column;
     align-items: stretch;
   }
-  .btn-primary {
-    justify-content: center;
+  .sort-wrap {
+    justify-content: space-between;
   }
-  .detail-row {
-    flex-direction: column;
-    gap: 2px;
-  }
-  .detail-label {
-    width: 100%;
-    font-size: 0.8rem;
-  }
-  .next-step-box {
+  .footer-inner {
     flex-direction: column;
     text-align: center;
   }

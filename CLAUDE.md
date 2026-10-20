@@ -10,7 +10,7 @@
 - **Cấu trúc thư mục:**
   - `frontend/`: Ứng dụng client Vue 2.7 (dùng Vite để build/dev).
   - `backend/`: API server Node.js + Express.
-  - `backend/data/`: Nơi lưu trữ file JSON (`products.json`, `orders.json`). Tuyệt đối không cài MySQL/Prisma trong giai đoạn 1.
+  - `backend/prisma/`: Chứa file `schema.prisma` và script seed dữ liệu kết nối Aiven Cloud MySQL (`techstore_db`).
 
 ---
 
