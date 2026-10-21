@@ -19,7 +19,7 @@ Tài liệu này chia dự án thành **5 lát cắt độc lập (slices)**.
 ### 🚀 Phase 2: Nâng Cấp Hệ Thống Chuyên Nghiệp (Đang Triển Khai)
 | Lát | Tên lát cắt (Tính năng) | Mục tiêu chính | Trạng thái |
 | :---: | :--- | :--- | :---: |
-| **6** | **Đăng nhập Admin Bảo mật (Admin Auth)** | Khóa bảo vệ tab Quản Trị, đăng nhập tài khoản/mật khẩu, cấp token, đăng xuất | 🟡 Đang thực hiện |
+| **6** | **Đăng nhập Admin Bảo mật (Admin Auth)** | Khóa bảo vệ tab Quản Trị, đăng nhập tài khoản/mật khẩu, cấp token, đăng xuất | 🟢 Đã hoàn thành |
 | **7** | **Quản lý Tồn kho & Hết hàng (Inventory)** | Thêm cột tồn kho `stock`, tự động trừ kho khi đặt hàng, hiển thị nhãn "Hết hàng" | ⚪ Chờ thực hiện |
 | **8** | **Đánh giá & Chấm sao (Reviews & Ratings)** | Khách hàng chấm sao (1-5 ⭐) và viết bình luận đánh giá trải nghiệm sản phẩm | ⚪ Chờ thực hiện |
 
