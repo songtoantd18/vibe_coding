@@ -68,7 +68,7 @@
           <!-- Slice Indicator Badge -->
           <div class="slice-badge">
             <span class="badge-dot"></span>
-            Lát 5: Quản trị & Đóng gói
+            Lát 6: Đăng nhập Admin Bảo mật
           </div>
         </div>
       </div>
@@ -150,10 +150,22 @@
       </div>
 
       <!-- 2. GIAO DIỆN QUẢN TRỊ (ADMIN PORTAL VIEW) -->
-      <AdminPortal 
-        v-else-if="currentView === 'admin'"
-        @product-added="onProductAdded"
-      />
+      <template v-else-if="currentView === 'admin'">
+        <!-- Cổng Đăng Nhập Bảo Mật nếu chưa đăng nhập -->
+        <AdminLogin 
+          v-if="!isAdminLoggedIn"
+          @login-success="handleAdminLoginSuccess"
+          @back-to-store="currentView = 'store'"
+        />
+
+        <!-- Bảng điều khiển Quản Trị Toàn Quyền khi đã đăng nhập -->
+        <AdminPortal 
+          v-else
+          :current-admin="currentAdmin"
+          @logout="handleAdminLogout"
+          @product-added="onProductAdded"
+        />
+      </template>
 
       <!-- Toast Notification for Add to Cart -->
       <transition name="fade">
@@ -206,6 +218,7 @@ import ProductModal from './components/ProductModal.vue';
 import CartDrawer from './components/CartDrawer.vue';
 import OrderSuccessModal from './components/OrderSuccessModal.vue';
 import AdminPortal from './components/AdminPortal.vue';
+import AdminLogin from './components/AdminLogin.vue';
 import { API_BASE_URL, API_ENDPOINTS } from './config/api.js';
 
 export default {
@@ -215,11 +228,14 @@ export default {
     ProductModal,
     CartDrawer,
     OrderSuccessModal,
-    AdminPortal
+    AdminPortal,
+    AdminLogin
   },
   data() {
     return {
       currentView: 'store',
+      isAdminLoggedIn: false,
+      currentAdmin: null,
       products: [],
       categories: ['Tất cả'],
       selectedCategory: 'Tất cả',
@@ -284,6 +300,19 @@ export default {
       }
     } catch (e) {
       this.cart = [];
+    }
+
+    // Khôi phục phiên làm việc Admin nếu còn hiệu lực
+    try {
+      const savedToken = localStorage.getItem('techstore_admin_token');
+      const savedAdmin = localStorage.getItem('techstore_admin_user');
+      if (savedToken && savedAdmin) {
+        this.currentAdmin = JSON.parse(savedAdmin);
+        this.isAdminLoggedIn = true;
+      }
+    } catch (e) {
+      this.isAdminLoggedIn = false;
+      this.currentAdmin = null;
     }
 
     this.fetchCategories();
@@ -384,6 +413,19 @@ export default {
       setTimeout(() => {
         this.toastMessage = '';
       }, 3000);
+    },
+    handleAdminLoginSuccess({ token, admin }) {
+      this.isAdminLoggedIn = true;
+      this.currentAdmin = admin;
+      this.showToast(`Chào mừng ${admin.fullName} (${admin.username}) đã đăng nhập Quản Trị!`);
+    },
+    handleAdminLogout() {
+      localStorage.removeItem('techstore_admin_token');
+      localStorage.removeItem('techstore_admin_user');
+      this.isAdminLoggedIn = false;
+      this.currentAdmin = null;
+      this.currentView = 'store';
+      this.showToast('Đã đăng xuất khỏi cổng Quản Trị an toàn.');
     }
   }
 };

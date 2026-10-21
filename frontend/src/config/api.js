@@ -7,5 +7,7 @@ export const API_ENDPOINTS = {
   HEALTH: `${API_BASE_URL}/api/health`,
   CATEGORIES: `${API_BASE_URL}/api/categories`,
   PRODUCTS: `${API_BASE_URL}/api/products`,
-  ORDERS: `${API_BASE_URL}/api/orders`
+  ORDERS: `${API_BASE_URL}/api/orders`,
+  ADMIN_LOGIN: `${API_BASE_URL}/api/admin/login`,
+  ADMIN_VERIFY: `${API_BASE_URL}/api/admin/verify`
 };

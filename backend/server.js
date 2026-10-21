@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const crypto = require('crypto');
 const prisma = require('./src/prisma');
 
 const app = express();
@@ -329,12 +330,159 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
+// ==========================================
+// SLICE 6: ADMIN AUTHENTICATION & SECURITY
+// ==========================================
+const ADMIN_SECRET = process.env.ADMIN_JWT_SECRET || 'techstore_secret_cyber_security_key_2026';
+
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+function createToken(userId, username) {
+  const payload = `${userId}:${username}:${Date.now()}`;
+  const hmac = crypto.createHmac('sha256', ADMIN_SECRET).update(payload).digest('hex');
+  return Buffer.from(`${payload}:${hmac}`).toString('base64');
+}
+
+function verifyToken(token) {
+  try {
+    if (!token) return null;
+    const decoded = Buffer.from(token, 'base64').toString('utf8');
+    const parts = decoded.split(':');
+    if (parts.length !== 4) return null;
+    const [userId, username, timestamp, hmac] = parts;
+    const payload = `${userId}:${username}:${timestamp}`;
+    const expectedHmac = crypto.createHmac('sha256', ADMIN_SECRET).update(payload).digest('hex');
+    if (hmac !== expectedHmac) return null;
+
+    // Token có hiệu lực 7 ngày (7 * 24 * 60 * 60 * 1000)
+    const age = Date.now() - parseInt(timestamp, 10);
+    if (age > 7 * 24 * 60 * 60 * 1000) return null;
+
+    return { userId: parseInt(userId, 10), username };
+  } catch (e) {
+    return null;
+  }
+}
+
+// Endpoint Đăng nhập Admin
+app.post('/api/admin/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu quản trị viên.'
+      });
+    }
+
+    const cleanUsername = username.trim();
+    const adminUser = await prisma.user.findUnique({
+      where: { username: cleanUsername }
+    });
+
+    if (!adminUser) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Tên đăng nhập hoặc mật khẩu không chính xác!'
+      });
+    }
+
+    const hashedInput = hashPassword(password);
+    if (adminUser.password !== hashedInput) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Tên đăng nhập hoặc mật khẩu không chính xác!'
+      });
+    }
+
+    // Tạo token xác thực
+    const token = createToken(adminUser.id, adminUser.username);
+
+    console.log(`🔐 ADMIN ĐĂNG NHẬP THÀNH CÔNG: [${adminUser.username}] - Role: ${adminUser.role}`);
+
+    return res.json({
+      status: 'ok',
+      message: 'Đăng nhập Quản Trị thành công!',
+      token,
+      admin: {
+        id: adminUser.id,
+        username: adminUser.username,
+        fullName: adminUser.fullName,
+        role: adminUser.role
+      }
+    });
+  } catch (err) {
+    console.error('❌ Lỗi đăng nhập Admin:', err.message);
+    return res.status(500).json({ status: 'error', message: 'Lỗi máy chủ khi đăng nhập: ' + err.message });
+  }
+});
+
+// Endpoint Kiểm tra phiên Admin Token (Verify)
+app.get('/api/admin/verify', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ status: 'error', message: 'Không tìm thấy token phiên làm việc.' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const verified = verifyToken(token);
+    if (!verified) {
+      return res.status(401).json({ status: 'error', message: 'Phiên làm việc đã hết hạn hoặc không hợp lệ.' });
+    }
+
+    const adminUser = await prisma.user.findUnique({
+      where: { id: verified.userId },
+      select: { id: true, username: true, fullName: true, role: true }
+    });
+
+    if (!adminUser) {
+      return res.status(401).json({ status: 'error', message: 'Tài khoản quản trị viên không còn tồn tại.' });
+    }
+
+    return res.json({
+      status: 'ok',
+      admin: adminUser
+    });
+  } catch (err) {
+    console.error('❌ Lỗi xác thực phiên Admin:', err.message);
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Hàm tự động đảm bảo có sẵn tài khoản admin mặc định khi server khởi động
+async function ensureDefaultAdmin() {
+  try {
+    const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const existing = await prisma.user.findUnique({ where: { username: adminUsername } });
+    if (!existing) {
+      await prisma.user.create({
+        data: {
+          username: adminUsername,
+          password: hashPassword(adminPassword),
+          fullName: 'Quản Trị Viên TechStore',
+          role: 'SUPER_ADMIN'
+        }
+      });
+      console.log(`🛡️ Khởi tạo tài khoản Admin mặc định: "${adminUsername}"`);
+    }
+  } catch (e) {
+    console.warn('⚠️ Ghi chú đảm bảo tài khoản Admin:', e.message);
+  }
+}
+
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚀 TechStore Backend running at: http://localhost:${PORT}`);
   console.log(`🩺 Health check URL: http://localhost:${PORT}/api/health`);
   console.log(`📦 Products API URL: http://localhost:${PORT}/api/products`);
   console.log(`📝 Orders API URL: http://localhost:${PORT}/api/orders`);
+  console.log(`🔐 Admin Auth URL: http://localhost:${PORT}/api/admin/login`);
+  await ensureDefaultAdmin();
 });
 
 

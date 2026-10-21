@@ -6,23 +6,41 @@
         <span class="admin-badge">ADMIN PORTAL</span>
         <h2 class="admin-heading">Quản Trị Hệ Thống TechStore</h2>
       </div>
-      <div class="admin-tabs">
-        <button 
-          type="button" 
-          class="tab-btn" 
-          :class="{ active: currentTab === 'orders' }"
-          @click="currentTab = 'orders'"
-        >
-          📋 Quản Lý Đơn Hàng ({{ orders.length }})
-        </button>
-        <button 
-          type="button" 
-          class="tab-btn" 
-          :class="{ active: currentTab === 'add-product' }"
-          @click="currentTab = 'add-product'"
-        >
-          ✨ Thêm Sản Phẩm Mới
-        </button>
+      <div class="admin-controls-group">
+        <div class="admin-tabs">
+          <button 
+            type="button" 
+            class="tab-btn" 
+            :class="{ active: currentTab === 'orders' }"
+            @click="currentTab = 'orders'"
+          >
+            📋 Quản Lý Đơn Hàng ({{ orders.length }})
+          </button>
+          <button 
+            type="button" 
+            class="tab-btn" 
+            :class="{ active: currentTab === 'add-product' }"
+            @click="currentTab = 'add-product'"
+          >
+            ✨ Thêm Sản Phẩm Mới
+          </button>
+        </div>
+
+        <!-- Admin User Pill & Logout Button -->
+        <div class="admin-user-bar">
+          <div class="admin-user-pill" :title="'Đang đăng nhập quyền: ' + (currentAdmin ? currentAdmin.role : 'ADMIN')">
+            <span class="user-status-dot"></span>
+            <span class="user-name">👤 {{ currentAdmin ? currentAdmin.username : 'Admin' }}</span>
+          </div>
+          <button 
+            type="button" 
+            class="btn-logout" 
+            title="Đăng xuất khỏi phiên quản trị" 
+            @click="$emit('logout')"
+          >
+            🚪 Đăng xuất
+          </button>
+        </div>
       </div>
     </div>
 
@@ -334,6 +352,12 @@ import { API_BASE_URL, API_ENDPOINTS } from '../config/api.js';
 
 export default {
   name: 'AdminPortal',
+  props: {
+    currentAdmin: {
+      type: Object,
+      default: () => null
+    }
+  },
   data() {
     return {
       currentTab: 'orders',
@@ -554,6 +578,13 @@ export default {
   color: var(--text-main);
 }
 
+.admin-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .admin-tabs {
   display: flex;
   background-color: var(--bg-card);
@@ -561,6 +592,59 @@ export default {
   border-radius: var(--radius-md);
   padding: 4px;
   gap: 4px;
+}
+
+.admin-user-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.user-status-dot {
+  width: 7px;
+  height: 7px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+}
+
+.user-name {
+  color: #f8fafc;
+}
+
+.btn-logout {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-logout:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ffffff;
+  border-color: #ef4444;
+  transform: translateY(-1px);
 }
 
 .tab-btn {
@@ -1249,7 +1333,21 @@ export default {
     gap: 14px;
   }
 
+  .admin-controls-group {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
   .admin-tabs {
+    width: 100%;
+  }
+
+  .admin-user-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     width: 100%;
   }
 

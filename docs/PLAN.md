@@ -5,15 +5,23 @@ Tài liệu này chia dự án thành **5 lát cắt độc lập (slices)**.
 
 ---
 
-## 🗺️ Bản đồ lộ trình 5 lát cắt
+## 🗺️ Bản đồ lộ trình phát triển
 
-| Lát | Tên lát cắt | Kết quả đạt được | Kiểm bằng cách | Trạng thái |
-| :---: | :--- | :--- | :--- | :---: |
-| **1** | **Khởi tạo nền tảng (Foundation)** | Monorepo (Vue 2.7 + Express), Health check API, Prisma + Aiven MySQL | `GET /api/health` trả `status: ok`, kết nối Aiven MySQL thành công | 🟢 Đã hoàn thành |
-| **2** | **Dữ liệu & API Sản phẩm (Product Catalog API)** | Bảng `techstore_products` (6 món Aiven MySQL kèm specs), Express REST API | Gọi `GET /api/products` và `GET /api/products/:id` trả về đúng danh sách sản phẩm | 🟢 Đã hoàn thành |
-| **3** | **Giao diện Cửa hàng (Frontend Catalog)** | Trang chủ, danh mục, chi tiết sản phẩm kèm bảng thông số kỹ thuật | Duyệt web trên Desktop & Mobile 375px: lọc danh mục, xem bảng specs rõ ràng | 🟢 Đã hoàn thành |
-| **4** | **Giỏ hàng & Đặt hàng COD (Cart & Checkout)** | Quản lý giỏ hàng LocalStorage, Form đặt hàng COD, API lưu đơn vào MySQL | Thêm món -> Giỏ hàng -> Đặt hàng -> Bảng `techstore_orders` có đơn mới -> Hiện trang thành công | 🟢 Đã hoàn thành |
-| **5** | **Quản trị cơ bản (`/admin`) & Đóng gói** | Xem danh sách đơn hàng từ MySQL, cập nhật trạng thái đơn (Mới -> Đang giao -> Đã giao), thêm sản phẩm mới | Truy cập `/admin`, thấy đơn vừa đặt ở Lát 4, đổi trạng thái; thêm sản phẩm và hoàn thiện demo | 🟢 Đã hoàn thành |
+### 🌟 Phase 1: Nền Tảng & Luồng Bán Hàng Cốt Lõi (Đã Hoàn Thành)
+| Lát | Tên lát cắt | Kết quả đạt được | Trạng thái |
+| :---: | :--- | :--- | :---: |
+| **1** | **Khởi tạo nền tảng** | Monorepo (Vue 2.7 + Express), Health check API, Prisma + Aiven MySQL | 🟢 Đã hoàn thành |
+| **2** | **Dữ liệu & API Sản phẩm** | Bảng `techstore_products` (Aiven MySQL kèm specs), Express REST API | 🟢 Đã hoàn thành |
+| **3** | **Giao diện Cửa hàng** | Lưới sản phẩm, lọc danh mục, modal thông số kỹ thuật (Specs Modal) | 🟢 Đã hoàn thành |
+| **4** | **Giỏ hàng & Đặt hàng COD** | LocalStorage, modal xác nhận thêm món, form COD, lưu đơn vào MySQL | 🟢 Đã hoàn thành |
+| **5** | **Quản trị cơ bản & Đóng gói** | Dashboard KPI doanh thu, bảng/card đơn hàng responsive, cập nhật trạng thái | 🟢 Đã hoàn thành |
+
+### 🚀 Phase 2: Nâng Cấp Hệ Thống Chuyên Nghiệp (Đang Triển Khai)
+| Lát | Tên lát cắt (Tính năng) | Mục tiêu chính | Trạng thái |
+| :---: | :--- | :--- | :---: |
+| **6** | **Đăng nhập Admin Bảo mật (Admin Auth)** | Khóa bảo vệ tab Quản Trị, đăng nhập tài khoản/mật khẩu, cấp token, đăng xuất | 🟡 Đang thực hiện |
+| **7** | **Quản lý Tồn kho & Hết hàng (Inventory)** | Thêm cột tồn kho `stock`, tự động trừ kho khi đặt hàng, hiển thị nhãn "Hết hàng" | ⚪ Chờ thực hiện |
+| **8** | **Đánh giá & Chấm sao (Reviews & Ratings)** | Khách hàng chấm sao (1-5 ⭐) và viết bình luận đánh giá trải nghiệm sản phẩm | ⚪ Chờ thực hiện |
 
 ---
 
@@ -89,8 +97,31 @@ Tài liệu này chia dự án thành **5 lát cắt độc lập (slices)**.
 
 ---
 
-## 🚀 Giai đoạn sau MVP: Nâng cấp MySQL & Prisma
-Khi toàn bộ 5 lát cắt chạy thông suốt và có demo hoàn chỉnh, chúng ta có thể làm thêm một lát nâng cấp riêng:
-- Cài đặt Prisma + MySQL.
-- Viết migration chuyển dữ liệu từ `products.json` và `orders.json` vào database thật.
-- Thay thế hàm đọc ghi file bằng Prisma Client mà không làm ảnh hưởng đến giao diện Vue 2.
+---
+
+## 🚀 Phase 2: Nâng Cấp Hệ Thống Chuyên Nghiệp
+
+### Lát 6: Đăng Nhập Admin Bảo Mật (Admin Auth & Security)
+- **Mục tiêu:** Khóa bảo vệ tab Quản Trị, chỉ cho phép quản trị viên có tài khoản/mật khẩu hợp lệ đăng nhập.
+- **Phạm vi:**
+  - API `POST /api/admin/login`: Xác thực tài khoản Admin, trả về token phiên làm việc.
+  - Giao diện Form Đăng nhập Admin phong cách Cyber Dark Glassmorphism, hiển thị khi bấm "⚙️ Quản Trị" nếu chưa đăng nhập.
+  - Quản lý phiên làm việc qua `localStorage`, nút "🚪 Đăng xuất" an toàn.
+- **Tiêu chí nghiệm thu:**
+  - [ ] Bấm "⚙️ Quản Trị" khi chưa đăng nhập -> Hiện form đăng nhập, không lộ dữ liệu đơn hàng.
+  - [ ] Nhập đúng tài khoản/mật khẩu -> Mở khóa toàn quyền truy cập Dashboard Admin.
+  - [ ] Bấm "Đăng xuất" -> Thoát phiên làm việc ngay lập tức.
+
+### Lát 7: Quản Lý Tồn Kho & Hết Hàng (Inventory Tracking)
+- **Mục tiêu:** Theo dõi số lượng tồn kho của từng sản phẩm, tự động trừ kho khi khách đặt hàng.
+- **Phạm vi:**
+  - Cập nhật schema Prisma: Bổ sung trường `stock` (Int) vào bảng `techstore_products`.
+  - Logic tạo đơn: Tự động trừ số lượng tồn kho `stock = stock - qty`.
+  - Giao diện: Hiển thị nhãn "Hết hàng" và vô hiệu hóa nút "Chọn mua" khi tồn kho = 0.
+  - Admin: Cập nhật nhanh số lượng tồn kho trực tiếp trong Admin Portal.
+
+### Lát 8: Đánh Giá & Chấm Sao Sản Phẩm (Reviews & Ratings)
+- **Mục tiêu:** Cho phép khách hàng chấm sao (1-5 ⭐) và viết bình luận đánh giá trải nghiệm thực tế.
+- **Phạm vi:**
+  - Schema `techstore_reviews`: Lưu sản phẩm, tên người đánh giá, số sao, nội dung nhận xét.
+  - Giao diện: Hiển thị số sao trung bình trên từng thẻ sản phẩm và form gửi đánh giá trong modal chi tiết.

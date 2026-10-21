@@ -39,3 +39,16 @@ model Order {
 
   @@map("techstore_orders")
 }
+
+// Model người dùng / Quản trị viên cho TechStore (Slice 6)
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(255)
+  fullName  String   @map("full_name") @db.VarChar(100)
+  role      String   @default("ADMIN") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("techstore_users")
+}
