@@ -248,6 +248,87 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
+// Endpoint cập nhật trạng thái đơn hàng (Admin)
+app.patch('/api/orders/:id/status', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ status: 'error', message: 'ID đơn hàng không hợp lệ' });
+    }
+
+    const { status } = req.body;
+    const allowedStatuses = ['PENDING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+    if (!status || !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        status: 'error',
+        message: `Trạng thái không hợp lệ. Chỉ chấp nhận: ${allowedStatuses.join(', ')}`
+      });
+    }
+
+    const updated = await prisma.order.update({
+      where: { id },
+      data: { status }
+    });
+
+    console.log(`🔄 CẬP NHẬT TRẠNG THÁI ĐƠN [${updated.orderCode}]: ${status}`);
+
+    return res.json({
+      status: 'ok',
+      message: `Đã cập nhật trạng thái đơn hàng sang ${status}`,
+      data: {
+        ...updated,
+        totalAmount: Number(updated.totalAmount)
+      }
+    });
+  } catch (err) {
+    console.error('❌ Lỗi cập nhật trạng thái đơn hàng:', err.message);
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
+// Endpoint thêm sản phẩm mới (Admin)
+app.post('/api/products', async (req, res) => {
+  try {
+    const { name, category, price, image, description, specs } = req.body;
+
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ status: 'error', message: 'Vui lòng nhập tên sản phẩm.' });
+    }
+    if (!category || category.trim() === '') {
+      return res.status(400).json({ status: 'error', message: 'Vui lòng chọn danh mục sản phẩm.' });
+    }
+    const numPrice = Number(price);
+    if (isNaN(numPrice) || numPrice <= 0) {
+      return res.status(400).json({ status: 'error', message: 'Giá sản phẩm phải là số dương hợp lệ.' });
+    }
+
+    const newProduct = await prisma.product.create({
+      data: {
+        name: name.trim(),
+        category: category.trim(),
+        price: numPrice,
+        image: image && image.trim() ? image.trim() : 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80',
+        description: description ? description.trim() : 'Sản phẩm công nghệ chính hãng tại TechStore.',
+        specs: specs || {}
+      }
+    });
+
+    console.log(`✨ THÊM SẢN PHẨM MỚI: [ID: ${newProduct.id}] ${newProduct.name} - ${numPrice.toLocaleString('vi-VN')} đ`);
+
+    return res.status(201).json({
+      status: 'ok',
+      message: 'Thêm sản phẩm mới thành công!',
+      data: {
+        ...newProduct,
+        price: Number(newProduct.price)
+      }
+    });
+  } catch (err) {
+    console.error('❌ Lỗi thêm sản phẩm:', err.message);
+    return res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 TechStore Backend running at: http://localhost:${PORT}`);

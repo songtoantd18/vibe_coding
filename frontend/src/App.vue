@@ -33,8 +33,29 @@
 
         <!-- Header Actions -->
         <div class="header-actions">
+          <!-- View Mode Toggle (Cửa Hàng vs Quản Trị) -->
+          <div class="view-mode-toggle">
+            <button 
+              type="button" 
+              class="btn-toggle-mode" 
+              :class="{ active: currentView === 'store' }"
+              @click="currentView = 'store'"
+            >
+              🛍️ Cửa Hàng
+            </button>
+            <button 
+              type="button" 
+              class="btn-toggle-mode" 
+              :class="{ active: currentView === 'admin' }"
+              @click="currentView = 'admin'"
+            >
+              ⚙️ Quản Trị
+            </button>
+          </div>
+
           <!-- Cart Pill Button -->
           <div 
+            v-if="currentView === 'store'"
             id="btn-cart" 
             class="cart-pill" 
             title="Mở Giỏ Hàng" 
@@ -47,7 +68,7 @@
           <!-- Slice Indicator Badge -->
           <div class="slice-badge">
             <span class="badge-dot"></span>
-            Lát 4: Giỏ hàng & COD
+            Lát 5: Quản trị & Đóng gói
           </div>
         </div>
       </div>
@@ -55,9 +76,11 @@
 
     <!-- Main Content -->
     <main class="main-content">
-      <!-- Hero Banner -->
-      <section class="store-hero">
-        <div class="hero-badge">🌟 Thiết bị công nghệ chính hãng • Hỗ trợ giao hàng COD toàn quốc</div>
+      <!-- 1. GIAO DIỆN CỬA HÀNG (STORE VIEW) -->
+      <div v-if="currentView === 'store'">
+        <!-- Hero Banner -->
+        <section class="store-hero">
+          <div class="hero-badge">🌟 Thiết bị công nghệ chính hãng • Hỗ trợ giao hàng COD toàn quốc</div>
         <h1 class="hero-title">Thiết Bị Điện Tử & Công Nghệ Hàng Đầu</h1>
         <p class="hero-desc">
           Khám phá các sản phẩm Apple, Samsung, Dell, Logitech chính hãng. Dữ liệu thời gian thực được đồng bộ trực tiếp từ <strong>Aiven Cloud MySQL</strong>.
@@ -117,13 +140,20 @@
         />
       </section>
 
-      <!-- Empty Filter State -->
-      <div v-else class="empty-state">
-        <div class="empty-icon">🔎</div>
-        <h3>Không tìm thấy sản phẩm phù hợp</h3>
-        <p>Không có sản phẩm nào khớp với từ khóa "<strong>{{ searchKeyword }}</strong>" trong danh mục này.</p>
-        <button type="button" class="btn-reset" @click="resetFilters">Xóa bộ lọc & Xem tất cả</button>
+        <!-- Empty Filter State -->
+        <div v-else class="empty-state">
+          <div class="empty-icon">🔎</div>
+          <h3>Không tìm thấy sản phẩm phù hợp</h3>
+          <p>Không có sản phẩm nào khớp với từ khóa "<strong>{{ searchKeyword }}</strong>" trong danh mục này.</p>
+          <button type="button" class="btn-reset" @click="resetFilters">Xóa bộ lọc & Xem tất cả</button>
+        </div>
       </div>
+
+      <!-- 2. GIAO DIỆN QUẢN TRỊ (ADMIN PORTAL VIEW) -->
+      <AdminPortal 
+        v-else-if="currentView === 'admin'"
+        @product-added="onProductAdded"
+      />
 
       <!-- Toast Notification for Add to Cart -->
       <transition name="fade">
@@ -175,6 +205,7 @@ import ProductCard from './components/ProductCard.vue';
 import ProductModal from './components/ProductModal.vue';
 import CartDrawer from './components/CartDrawer.vue';
 import OrderSuccessModal from './components/OrderSuccessModal.vue';
+import AdminPortal from './components/AdminPortal.vue';
 
 export default {
   name: 'App',
@@ -182,10 +213,12 @@ export default {
     ProductCard,
     ProductModal,
     CartDrawer,
-    OrderSuccessModal
+    OrderSuccessModal,
+    AdminPortal
   },
   data() {
     return {
+      currentView: 'store',
       products: [],
       categories: ['Tất cả'],
       selectedCategory: 'Tất cả',
@@ -283,6 +316,9 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    async onProductAdded() {
+      await Promise.all([this.fetchProducts(), this.fetchCategories()]);
     },
     countByCategory(cat) {
       return this.products.filter((p) => p.category === cat).length;
@@ -470,14 +506,43 @@ export default {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-shrink: 0;
+}
+
+.view-mode-toggle {
+  display: flex;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 3px;
+}
+
+.btn-toggle-mode {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-toggle-mode:hover {
+  color: var(--text-main);
+}
+
+.btn-toggle-mode.active {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
 
 .cart-pill {
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -789,6 +854,37 @@ export default {
 @media (max-width: 768px) {
   .header-inner {
     flex-wrap: wrap;
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  .brand {
+    gap: 8px;
+  }
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+  .brand-title {
+    font-size: 1.15rem;
+  }
+  .brand-subtitle {
+    display: none;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+  .view-mode-toggle {
+    padding: 2px;
+    gap: 2px;
+  }
+  .btn-toggle-mode {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+  }
+  .cart-pill {
+    width: 36px;
+    height: 36px;
   }
   .search-container {
     order: 3;

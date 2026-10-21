@@ -13,7 +13,7 @@ Tài liệu này chia dự án thành **5 lát cắt độc lập (slices)**.
 | **2** | **Dữ liệu & API Sản phẩm (Product Catalog API)** | Bảng `techstore_products` (6 món Aiven MySQL kèm specs), Express REST API | Gọi `GET /api/products` và `GET /api/products/:id` trả về đúng danh sách sản phẩm | 🟢 Đã hoàn thành |
 | **3** | **Giao diện Cửa hàng (Frontend Catalog)** | Trang chủ, danh mục, chi tiết sản phẩm kèm bảng thông số kỹ thuật | Duyệt web trên Desktop & Mobile 375px: lọc danh mục, xem bảng specs rõ ràng | 🟢 Đã hoàn thành |
 | **4** | **Giỏ hàng & Đặt hàng COD (Cart & Checkout)** | Quản lý giỏ hàng LocalStorage, Form đặt hàng COD, API lưu đơn vào MySQL | Thêm món -> Giỏ hàng -> Đặt hàng -> Bảng `techstore_orders` có đơn mới -> Hiện trang thành công | 🟢 Đã hoàn thành |
-| **5** | **Quản trị cơ bản (`/admin`) & Đóng gói** | Xem danh sách đơn hàng từ MySQL, cập nhật trạng thái đơn (Mới -> Đang giao -> Đã giao) | Truy cập `/admin`, thấy đơn vừa đặt ở Lát 4, đổi trạng thái; hoàn thiện demo | ⚪ Chờ thực hiện |
+| **5** | **Quản trị cơ bản (`/admin`) & Đóng gói** | Xem danh sách đơn hàng từ MySQL, cập nhật trạng thái đơn (Mới -> Đang giao -> Đã giao), thêm sản phẩm mới | Truy cập `/admin`, thấy đơn vừa đặt ở Lát 4, đổi trạng thái; thêm sản phẩm và hoàn thiện demo | 🟢 Đã hoàn thành |
 
 ---
 
