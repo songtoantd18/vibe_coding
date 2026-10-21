@@ -113,7 +113,7 @@
           :key="product.id" 
           :product="product"
           @view-details="openModal"
-          @buy-click="addToCart"
+          @buy-click="openModal"
         />
       </section>
 
@@ -296,20 +296,21 @@ export default {
       this.sortOption = 'default';
     },
     addToCart(product) {
+      const addQty = Math.max(1, parseInt(product.quantity, 10) || 1);
       const existing = this.cart.find((i) => i.productId === product.id);
       if (existing) {
-        existing.quantity += 1;
+        existing.quantity += addQty;
       } else {
         this.cart.push({
           productId: product.id,
           name: product.name,
           price: Number(product.price),
           image: product.image,
-          quantity: 1
+          quantity: addQty
         });
       }
 
-      this.showToast(`Đã thêm "${product.name}" vào giỏ hàng!`);
+      this.showToast(`Đã thêm ${addQty}x "${product.name}" vào giỏ hàng!`);
       if (this.selectedProduct) {
         this.selectedProduct = null;
       }
@@ -338,7 +339,8 @@ export default {
       this.cart = [];
       localStorage.removeItem('techstore_cart');
       // 3. Mở modal thành công
-      this.placedOrder = orderResponse.data;
+      const orderData = (orderResponse && orderResponse.data) ? orderResponse.data : orderResponse;
+      this.placedOrder = orderData;
     },
     showToast(msg) {
       this.toastMessage = msg;

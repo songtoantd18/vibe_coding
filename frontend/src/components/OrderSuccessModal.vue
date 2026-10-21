@@ -44,8 +44,8 @@
         <h4>Sản phẩm đã đặt ({{ order.items.length }} món):</h4>
         <div class="items-list">
           <div v-for="item in order.items" :key="item.productId" class="mini-item">
-            <span>{{ item.name }} <strong>× {{ item.quantity }}</strong></span>
-            <span>{{ formatPrice(item.price * item.quantity) }}</span>
+            <span class="mini-item-name">{{ item.name }} <strong class="mini-item-qty">× {{ item.quantity }}</strong></span>
+            <span class="mini-item-price">{{ formatPrice(item.price * item.quantity) }}</span>
           </div>
         </div>
       </div>
@@ -96,6 +96,7 @@ export default {
   justify-content: center;
   padding: 20px;
   animation: fadeIn 0.25s ease;
+  box-sizing: border-box;
 }
 
 @keyframes fadeIn {
@@ -115,6 +116,7 @@ export default {
   text-align: center;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
   animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 @keyframes popIn {
@@ -161,7 +163,7 @@ export default {
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
@@ -197,17 +199,18 @@ export default {
   border: 1px solid rgba(56, 189, 248, 0.3);
   padding: 3px 10px;
   border-radius: 6px;
+  word-break: break-all;
 }
 
 .payment-tag {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-success);
 }
 
 .total-highlight {
   border-top: 1px dashed rgba(255, 255, 255, 0.1);
-  padding-top: 10px;
+  padding-top: 12px;
   margin-top: 4px;
 }
 
@@ -235,14 +238,34 @@ export default {
 .items-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .mini-item {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
   font-size: 0.825rem;
   color: var(--text-main);
+}
+
+.mini-item-name {
+  flex: 1;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.mini-item-qty {
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.mini-item-price {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: #38bdf8;
+  white-space: nowrap;
 }
 
 .notice-box {
@@ -255,6 +278,7 @@ export default {
   line-height: 1.5;
   margin-bottom: 22px;
   text-align: left;
+  word-break: break-word;
 }
 
 .btn-done {
@@ -272,4 +296,137 @@ export default {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
 }
-</style>
+
+/* ====================================================
+   RESPONSIVE DESIGN (TABLET & MOBILE 320px - 480px)
+   ==================================================== */
+@media (max-width: 480px) {
+  .success-backdrop {
+    padding: 12px;
+  }
+
+  .success-dialog {
+    padding: 22px 16px;
+    max-height: 94vh;
+    border-radius: 16px;
+  }
+
+  .icon-circle {
+    width: 58px;
+    height: 58px;
+    font-size: 28px;
+  }
+
+  .success-title {
+    font-size: 1.3rem;
+  }
+
+  .success-subtitle {
+    font-size: 0.875rem;
+    margin-bottom: 18px;
+  }
+
+  .order-info-card {
+    padding: 14px 12px;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* Responsive Info Rows: Stack vertically on small screens */
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .info-label {
+    font-size: 0.775rem;
+    color: var(--text-dim);
+  }
+
+  .info-value {
+    text-align: left;
+    width: 100%;
+    font-size: 0.85rem;
+  }
+
+  .order-code-badge {
+    align-self: flex-start;
+    font-size: 0.95rem;
+  }
+
+  .payment-tag {
+    align-self: flex-start;
+    font-size: 0.8rem;
+  }
+
+  /* Total price stays distinct on mobile */
+  .info-row.total-highlight {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+  }
+
+  .info-row.total-highlight .info-label {
+    font-size: 0.85rem;
+  }
+
+  .final-total {
+    font-size: 1.15rem;
+  }
+
+  .mini-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+  }
+
+  .mini-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .mini-item-price {
+    align-self: flex-end;
+    font-size: 0.825rem;
+  }
+
+  .notice-box {
+    padding: 10px 12px;
+    font-size: 0.775rem;
+    margin-bottom: 16px;
+  }
+
+  .btn-done {
+    padding: 12px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Extra small mobile screens (320px - 340px) */
+@media (max-width: 340px) {
+  .success-backdrop {
+    padding: 8px 6px;
+  }
+
+  .success-dialog {
+    padding: 16px 10px;
+    border-radius: 12px;
+  }
+
+  .success-title {
+    font-size: 1.15rem;
+  }
+
+  .order-info-card {
+    padding: 10px 8px;
+    gap: 10px;
+  }
+
+  .final-total {
+    font-size: 1.05rem;
+  }
+}

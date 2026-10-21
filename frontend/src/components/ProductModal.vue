@@ -26,8 +26,34 @@
               <span>🛡️ Chính hãng 100% • Hỗ trợ COD toàn quốc</span>
             </div>
           </div>
-          <button type="button" class="btn-buy-modal" @click="$emit('buy-click', product)">
-            🛒 Thêm Vào Giỏ Hàng
+
+          <!-- Quantity Selector (Bộ chọn số lượng xác nhận) -->
+          <div class="modal-quantity-box">
+            <span class="qty-label">Số lượng mua:</span>
+            <div class="qty-control">
+              <button 
+                type="button" 
+                class="btn-qty" 
+                :disabled="selectedQuantity <= 1"
+                @click="decreaseQty"
+              >−</button>
+              <span class="qty-val">{{ selectedQuantity }}</span>
+              <button 
+                type="button" 
+                class="btn-qty" 
+                @click="increaseQty"
+              >+</button>
+            </div>
+          </div>
+
+          <!-- Subtotal Preview -->
+          <div class="qty-subtotal">
+            <span>Tạm tính ({{ selectedQuantity }} món):</span>
+            <strong class="subtotal-val">{{ formatPrice(product.price * selectedQuantity) }}</strong>
+          </div>
+
+          <button type="button" class="btn-buy-modal" @click="confirmAddToCart">
+            🛒 Xác Nhận Thêm Vào Giỏ Hàng
           </button>
         </div>
 
@@ -116,6 +142,16 @@ export default {
       default: null
     }
   },
+  data() {
+    return {
+      selectedQuantity: 1
+    };
+  },
+  watch: {
+    product() {
+      this.selectedQuantity = 1;
+    }
+  },
   mounted() {
     window.addEventListener('keydown', this.handleKeyDown);
   },
@@ -131,6 +167,20 @@ export default {
       if (e.key === 'Escape') {
         this.$emit('close');
       }
+    },
+    increaseQty() {
+      this.selectedQuantity += 1;
+    },
+    decreaseQty() {
+      if (this.selectedQuantity > 1) {
+        this.selectedQuantity -= 1;
+      }
+    },
+    confirmAddToCart() {
+      this.$emit('buy-click', {
+        ...this.product,
+        quantity: this.selectedQuantity
+      });
     }
   }
 };
@@ -279,6 +329,77 @@ export default {
   line-height: 1.4;
 }
 
+.modal-quantity-box {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.qty-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.qty-control {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.btn-qty {
+  width: 32px;
+  height: 32px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-qty:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.btn-qty:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.qty-val {
+  min-width: 36px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.qty-subtotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+.subtotal-val {
+  color: #38bdf8;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
 .btn-buy-modal {
   padding: 14px;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
@@ -366,6 +487,67 @@ export default {
   .modal-body {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-backdrop {
+    padding: 10px;
+  }
+
+  .modal-container {
+    max-height: 94vh;
+    border-radius: 14px;
+  }
+
+  .modal-header {
+    padding: 14px 16px;
+  }
+
+  .modal-title {
+    font-size: 1.1rem;
+  }
+
+  .modal-body {
+    padding: 16px 12px;
+    gap: 16px;
+  }
+
+  .spec-label {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  .spec-value {
+    padding: 8px 10px;
+    font-size: 0.825rem;
+  }
+
+  .modal-footer {
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 340px) {
+  .modal-backdrop {
+    padding: 6px;
+  }
+
+  .modal-container {
+    border-radius: 10px;
+  }
+
+  .modal-header {
+    padding: 12px 10px;
+  }
+
+  .modal-body {
+    padding: 12px 8px;
+  }
+
+  .spec-label, .spec-value {
+    padding: 6px 8px;
+    font-size: 0.775rem;
   }
 }
 </style>

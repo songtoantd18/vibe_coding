@@ -53,12 +53,13 @@ Hoàn tất trọn vẹn luồng trải nghiệm mua sắm của khách hàng c�
 
 ## 3. Tiêu chí nghiệm thu (Acceptance Criteria)
 
-- [ ] Bấm nút "Chọn mua" ở bất kỳ sản phẩm nào -> Sản phẩm được thêm vào giỏ hàng, mở ngăn kéo giỏ hàng mượt mà.
-- [ ] Bấm tăng/giảm số lượng món -> Tổng tiền giỏ hàng cập nhật chuẩn xác từng đồng.
-- [ ] Bấm nút xóa món -> Món hàng được gỡ khỏi giỏ hàng.
-- [ ] Tải lại trang (F5) -> Giỏ hàng vẫn giữ nguyên các món đã chọn.
-- [ ] Bỏ trống ô họ tên hoặc SĐT rồi bấm Đặt hàng -> Báo lỗi nhắc nhở, không cho gửi đơn rác.
-- [ ] Điền đủ thông tin và bấm "Xác nhận đặt hàng" -> Gửi `POST /api/orders`, lưu thành công đơn hàng vào bảng `techstore_orders` trên Aiven Cloud.
-- [ ] Màn hình thành công xuất hiện với đúng mã đơn hàng và số tiền COD.
-- [ ] Giỏ hàng tự động dọn sạch về 0 sau khi đặt hàng thành công.
-- [ ] Mở Prisma Studio (`http://localhost:5555`) thấy dòng đơn hàng mới xuất hiện trong database.
+- [x] Bấm nút "Chọn mua" ở bất kỳ sản phẩm nào -> Mở Modal chi tiết xem cấu hình, chọn số lượng mua (1, 2, 3...) và bấm "Xác nhận thêm vào giỏ hàng" -> Thêm vào giỏ và mở ngăn kéo giỏ hàng mượt mà.
+- [x] Bấm tăng/giảm số lượng món -> Tổng tiền giỏ hàng cập nhật chuẩn xác từng đồng.
+- [x] Bấm nút xóa món -> Món hàng được gỡ khỏi giỏ hàng.
+- [x] Tải lại trang (F5) -> Giỏ hàng vẫn giữ nguyên các món đã chọn nhờ LocalStorage.
+- [x] Bỏ trống ô họ tên hoặc SĐT rồi bấm Đặt hàng -> Báo lỗi nhắc nhở trực quan (viền đỏ, thông báo lỗi inline và banner cảnh báo), tự động cuộn lên ô bị thiếu.
+- [x] Điền đủ thông tin và bấm "Xác nhận đặt hàng" -> Gửi `POST /api/orders`, lưu thành công đơn hàng vào bảng `techstore_orders` trên Aiven Cloud.
+- [x] Màn hình thành công xuất hiện với đúng mã đơn hàng, chi tiết món hàng, thông tin người nhận và số tiền COD.
+- [x] Giỏ hàng tự động dọn sạch về 0 sau khi đặt hàng thành công.
+- [x] Mở Prisma Studio (`http://localhost:5555`) thấy dòng đơn hàng mới xuất hiện trong database.
+- [x] Giao diện co giãn chuẩn responsive trên màn hình siêu nhỏ 320px–325px không bị vỡ layout.

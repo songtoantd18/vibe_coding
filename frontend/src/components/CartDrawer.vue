@@ -81,8 +81,10 @@
                   v-model="form.customerName" 
                   type="text" 
                   placeholder="Ví dụ: Nguyễn Văn An" 
-                  required 
+                  :class="{ 'has-error': errors.customerName }"
+                  @input="errors.customerName = ''; errorMessage = ''"
                 />
+                <span v-if="errors.customerName" class="field-error-text">⚠️ {{ errors.customerName }}</span>
               </div>
 
               <!-- Phone -->
@@ -93,8 +95,10 @@
                   v-model="form.phone" 
                   type="tel" 
                   placeholder="Ví dụ: 0912345678" 
-                  required 
+                  :class="{ 'has-error': errors.phone }"
+                  @input="errors.phone = ''; errorMessage = ''"
                 />
+                <span v-if="errors.phone" class="field-error-text">⚠️ {{ errors.phone }}</span>
               </div>
 
               <!-- Address -->
@@ -105,8 +109,10 @@
                   v-model="form.address" 
                   type="text" 
                   placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/TP" 
-                  required 
+                  :class="{ 'has-error': errors.address }"
+                  @input="errors.address = ''; errorMessage = ''"
                 />
+                <span v-if="errors.address" class="field-error-text">⚠️ {{ errors.address }}</span>
               </div>
 
               <!-- Notes -->
@@ -129,11 +135,6 @@
                 </div>
               </div>
 
-              <!-- Error Alert -->
-              <div v-if="errorMessage" class="error-alert">
-                ⚠️ {{ errorMessage }}
-              </div>
-
               <!-- Summary & Submit -->
               <div class="order-summary">
                 <div class="summary-row">
@@ -150,12 +151,19 @@
                 </div>
               </div>
 
+              <!-- Error Alert placed right above submit button -->
+              <div v-if="errorMessage" class="error-alert">
+                ⚠️ {{ errorMessage }}
+              </div>
+
               <button 
                 type="submit" 
                 class="btn-submit-order" 
                 :disabled="isSubmitting"
               >
-                <span v-if="isSubmitting" class="btn-spinner"></span>
+                <span v-if="isSubmitting" class="btn-submitting">
+                  <span class="btn-spinner"></span> Đang tạo đơn hàng...
+                </span>
                 <span v-else>🚀 Xác Nhận Đặt Hàng COD</span>
               </button>
             </form>
@@ -187,6 +195,11 @@ export default {
         address: '',
         notes: ''
       },
+      errors: {
+        customerName: '',
+        phone: '',
+        address: ''
+      },
       isSubmitting: false,
       errorMessage: ''
     };
@@ -217,17 +230,41 @@ export default {
     },
     async submitOrder() {
       this.errorMessage = '';
+      this.errors = { customerName: '', phone: '', address: '' };
+      let hasError = false;
+      let firstErrorField = null;
 
       if (!this.form.customerName.trim()) {
-        this.errorMessage = 'Vui lòng nhập họ và tên người nhận.';
-        return;
+        this.errors.customerName = 'Vui lòng nhập họ và tên người nhận.';
+        hasError = true;
+        firstErrorField = firstErrorField || 'order-name';
       }
-      if (!this.form.phone.trim() || this.form.phone.trim().length < 9) {
-        this.errorMessage = 'Vui lòng nhập số điện thoại hợp lệ.';
-        return;
+
+      const phoneClean = this.form.phone.trim();
+      const phoneRegex = /^[0-9+() -]{9,15}$/;
+      if (!phoneClean || !phoneRegex.test(phoneClean)) {
+        this.errors.phone = 'Vui lòng nhập số điện thoại hợp lệ (9 đến 15 số).';
+        hasError = true;
+        firstErrorField = firstErrorField || 'order-phone';
       }
+
       if (!this.form.address.trim()) {
-        this.errorMessage = 'Vui lòng nhập địa chỉ nhận hàng.';
+        this.errors.address = 'Vui lòng nhập địa chỉ nhận hàng cụ thể.';
+        hasError = true;
+        firstErrorField = firstErrorField || 'order-address';
+      }
+
+      if (hasError) {
+        this.errorMessage = 'Vui lòng hoàn thành các thông tin nhận hàng bắt buộc ở trên.';
+        this.$nextTick(() => {
+          if (firstErrorField) {
+            const el = document.getElementById(firstErrorField);
+            if (el) {
+              el.focus();
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
+        });
         return;
       }
 
@@ -256,14 +293,15 @@ export default {
         const data = await res.json();
 
         if (res.ok && data.status === 'ok') {
-          // Reset form
+          // Reset form & errors
           this.form = { customerName: '', phone: '', address: '', notes: '' };
+          this.errors = { customerName: '', phone: '', address: '' };
           this.$emit('order-success', data);
         } else {
           this.errorMessage = data.message || 'Đã xảy ra lỗi khi tạo đơn hàng.';
         }
       } catch (err) {
-        this.errorMessage = 'Không thể kết nối máy chủ Backend. Vui lòng kiểm tra lại.';
+        this.errorMessage = 'Không thể kết nối máy chủ Backend (:5000). Vui lòng kiểm tra lại.';
       } finally {
         this.isSubmitting = false;
       }
@@ -552,6 +590,20 @@ export default {
   border-color: var(--color-accent);
 }
 
+.form-group input.has-error {
+  border-color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.05);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.field-error-text {
+  color: #f87171;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+}
+
 .payment-method-badge {
   background-color: rgba(16, 185, 129, 0.1);
   border: 1px solid rgba(16, 185, 129, 0.3);
@@ -581,10 +633,26 @@ export default {
   background-color: rgba(239, 68, 68, 0.15);
   border: 1px solid #ef4444;
   color: #fca5a5;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: var(--radius-sm);
-  font-size: 0.825rem;
-  margin-bottom: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  line-height: 1.4;
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.btn-submitting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 /* Order Summary */
@@ -657,5 +725,77 @@ export default {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* ====================================================
+   RESPONSIVE DESIGN (DRAWER ON MOBILE 320px - 480px)
+   ==================================================== */
+@media (max-width: 480px) {
+  .drawer-container {
+    max-width: 100vw;
+  }
+
+  .drawer-header {
+    padding: 14px 16px;
+  }
+
+  .drawer-title {
+    font-size: 1.05rem;
+  }
+
+  .drawer-body {
+    padding: 16px 14px;
+  }
+
+  .cart-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .item-thumb {
+    width: 52px;
+    height: 52px;
+  }
+
+  .item-name {
+    font-size: 0.85rem;
+  }
+
+  .checkout-section {
+    padding: 16px 14px;
+  }
+
+  .form-group input {
+    font-size: 16px; /* Prevents auto-zoom on iOS Safari */
+    padding: 10px 12px;
+  }
+}
+
+@media (max-width: 340px) {
+  .drawer-header {
+    padding: 12px 10px;
+  }
+
+  .drawer-body {
+    padding: 12px 8px;
+  }
+
+  .cart-item {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .item-thumb {
+    width: 44px;
+    height: 44px;
+  }
+
+  .checkout-section {
+    padding: 14px 10px;
+  }
+
+  .checkout-title {
+    font-size: 1rem;
+  }
 }
 </style>
