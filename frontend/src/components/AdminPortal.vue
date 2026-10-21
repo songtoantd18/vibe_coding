@@ -330,6 +330,8 @@
 </template>
 
 <script>
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api.js';
+
 export default {
   name: 'AdminPortal',
   data() {
@@ -434,7 +436,7 @@ export default {
     async fetchOrders() {
       this.loadingOrders = true;
       try {
-        const res = await fetch('http://localhost:5000/api/orders');
+        const res = await fetch(API_ENDPOINTS.ORDERS);
         const data = await res.json();
         if (res.ok && data.status === 'ok') {
           this.orders = data.data || [];
@@ -442,7 +444,7 @@ export default {
           this.showAlert('Không thể lấy danh sách đơn hàng: ' + (data.message || ''), 'error');
         }
       } catch (err) {
-        this.showAlert('Lỗi kết nối máy chủ Backend (:5000)', 'error');
+        this.showAlert(`Lỗi kết nối máy chủ Backend (${API_BASE_URL})`, 'error');
       } finally {
         this.loadingOrders = false;
       }
@@ -450,7 +452,7 @@ export default {
     async updateOrderStatus(orderId, newStatus) {
       this.updatingOrderId = orderId;
       try {
-        const res = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+        const res = await fetch(`${API_ENDPOINTS.ORDERS}/${orderId}/status`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: newStatus })
@@ -483,7 +485,7 @@ export default {
           specs: this.newProduct.specs
         };
 
-        const res = await fetch('http://localhost:5000/api/products', {
+        const res = await fetch(API_ENDPOINTS.PRODUCTS, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -507,7 +509,7 @@ export default {
           this.showAlert(data.message || 'Lỗi thêm sản phẩm mới.', 'error');
         }
       } catch (err) {
-        this.showAlert('Không thể kết nối máy chủ Backend (:5000)', 'error');
+        this.showAlert(`Không thể kết nối máy chủ Backend (${API_BASE_URL})`, 'error');
       } finally {
         this.submittingProduct = false;
       }

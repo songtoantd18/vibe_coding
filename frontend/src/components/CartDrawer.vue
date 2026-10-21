@@ -175,6 +175,8 @@
 </template>
 
 <script>
+import { API_ENDPOINTS } from '../config/api.js';
+
 export default {
   name: 'CartDrawer',
   props: {
@@ -284,7 +286,7 @@ export default {
           }))
         };
 
-        const res = await fetch('http://localhost:5000/api/orders', {
+        const res = await fetch(API_ENDPOINTS.ORDERS, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)

@@ -206,6 +206,7 @@ import ProductModal from './components/ProductModal.vue';
 import CartDrawer from './components/CartDrawer.vue';
 import OrderSuccessModal from './components/OrderSuccessModal.vue';
 import AdminPortal from './components/AdminPortal.vue';
+import { API_BASE_URL, API_ENDPOINTS } from './config/api.js';
 
 export default {
   name: 'App',
@@ -291,7 +292,7 @@ export default {
   methods: {
     async fetchCategories() {
       try {
-        const res = await fetch('http://localhost:5000/api/categories');
+        const res = await fetch(API_ENDPOINTS.CATEGORIES);
         const json = await res.json();
         if (json.status === 'ok') {
           this.categories = json.data;
@@ -304,7 +305,7 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        const res = await fetch('http://localhost:5000/api/products');
+        const res = await fetch(API_ENDPOINTS.PRODUCTS);
         const json = await res.json();
         if (json.status === 'ok') {
           this.products = json.data;
@@ -312,7 +313,7 @@ export default {
           this.error = json.message || 'Lỗi lấy danh sách sản phẩm';
         }
       } catch (err) {
-        this.error = 'Không thể kết nối đến Backend Express tại http://localhost:5000';
+        this.error = `Không thể kết nối đến Backend tại ${API_BASE_URL}`;
       } finally {
         this.loading = false;
       }
