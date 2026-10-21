@@ -13,7 +13,7 @@
         </div>
 
         <!-- Search Bar in Header -->
-        <div class="search-container">
+        <div v-if="currentView === 'store'" class="search-container">
           <span class="search-icon">🔍</span>
           <input 
             v-model="searchKeyword" 
@@ -855,42 +855,46 @@ export default {
 @media (max-width: 768px) {
   .header-inner {
     flex-wrap: wrap;
-    padding: 10px 14px;
-    gap: 10px;
-  }
-  .brand {
+    padding: 8px 12px;
     gap: 8px;
   }
+  .brand {
+    gap: 6px;
+    flex-shrink: 0;
+  }
   .brand-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
   }
   .brand-title {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
   }
   .brand-subtitle {
     display: none;
   }
   .header-actions {
-    gap: 8px;
+    gap: 6px;
+    margin-left: auto;
   }
   .view-mode-toggle {
     padding: 2px;
     gap: 2px;
   }
   .btn-toggle-mode {
-    padding: 6px 8px;
-    font-size: 0.75rem;
+    padding: 5px 8px;
+    font-size: 0.725rem;
   }
   .cart-pill {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
   }
   .search-container {
     order: 3;
-    max-width: 100%;
-    width: 100%;
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 4px;
   }
   .slice-badge {
     display: none;
