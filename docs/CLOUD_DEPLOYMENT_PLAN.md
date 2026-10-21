@@ -12,13 +12,13 @@
                   │
                   ▼
    [🎨 FRONTEND - Vercel Cloud]
-   Link: https://techstore-vibe.vercel.app
+   Link: https://<tên-repo-hoặc-tùy-chọn>.vercel.app
    Nhiệm vụ: Chứa giao diện Vue 2, tải cực nhanh
                   │
                   │ (Gọi API qua biến VITE_API_URL)
                   ▼
    [⚙️ BACKEND - Render Cloud]
-   Link: https://techstore-backend.onrender.com
+   Link: https://techstore-backend-<mã-ngẫu-nhiên>.onrender.com
    Nhiệm vụ: Chạy máy chủ Express Node.js 24/7 xử lý đơn hàng, sản phẩm
                   │
                   │ (Kết nối bảo mật SSL qua biến DATABASE_URL)
