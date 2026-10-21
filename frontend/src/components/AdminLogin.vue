@@ -164,22 +164,24 @@ export default {
 .admin-login-wrapper {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: calc(100vh - 200px);
-  padding: 40px 16px;
+  align-items: flex-start;
+  min-height: calc(100vh - 120px);
+  padding: 30px 16px 60px;
+  box-sizing: border-box;
 }
 
 .login-card {
   width: 100%;
   max-width: 440px;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: 20px;
-  padding: 36px 32px;
+  padding: 32px 28px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.12);
   animation: fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-top: 10px;
 }
 
 @keyframes fadeInDown {
@@ -425,12 +427,48 @@ export default {
   to { transform: rotate(360deg); }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  .admin-login-wrapper {
+    padding: 16px 12px 40px;
+    min-height: auto;
+  }
   .login-card {
-    padding: 28px 20px;
+    padding: 24px 18px;
+    margin-top: 0;
+    border-radius: 16px;
+  }
+  .shield-badge {
+    width: 54px;
+    height: 54px;
+    margin-bottom: 10px;
+  }
+  .shield-icon {
+    font-size: 26px;
   }
   .card-title {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
+  }
+  .card-subtitle {
+    font-size: 0.8rem;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-input {
+    height: 44px;
+    font-size: 0.9rem;
+  }
+  .demo-hint-box {
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px 10px;
+  }
+  .hint-code {
+    font-size: 0.775rem;
+  }
+  .btn-submit-login {
+    height: 46px;
+    font-size: 0.95rem;
   }
 }
 </style>

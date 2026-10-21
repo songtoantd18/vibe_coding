@@ -189,8 +189,13 @@
       <div v-if="filteredOrders.length > 0" class="orders-mobile-cards">
         <div v-for="order in filteredOrders" :key="'mob-' + order.id" class="order-card-mobile">
           <div class="order-card-top">
-            <span class="code-badge">{{ order.orderCode }}</span>
-            <span class="order-card-time">{{ formatDate(order.createdAt) }}</span>
+            <div class="order-card-code-wrap">
+              <span class="code-badge">{{ order.orderCode }}</span>
+              <span class="order-card-time">{{ formatDate(order.createdAt) }}</span>
+            </div>
+            <span class="status-badge" :class="getStatusBadgeClass(order.status)">
+              {{ getStatusText(order.status) }}
+            </span>
           </div>
 
           <div class="order-card-buyer">
@@ -216,10 +221,8 @@
               <span class="money-label">Tổng COD:</span>
               <span class="money-val">{{ formatPrice(order.totalAmount) }}</span>
             </div>
-            <div class="order-card-status-row">
-              <span class="status-badge" :class="getStatusBadgeClass(order.status)">
-                {{ getStatusText(order.status) }}
-              </span>
+            <div class="order-card-select-wrap">
+              <label class="select-label-sm">Đổi trạng thái:</label>
               <select 
                 class="select-status mobile-select" 
                 :value="order.status"
@@ -1280,10 +1283,22 @@ export default {
   color: #38bdf8;
 }
 
-.order-card-status-row {
+.order-card-code-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.order-card-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.select-label-sm {
+  font-size: 0.75rem;
+  color: var(--text-dim);
 }
 
 .mobile-select {
@@ -1361,10 +1376,29 @@ export default {
   .orders-toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
 
   .status-filter-group {
-    justify-content: flex-start;
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    gap: 6px;
+  }
+
+  .status-filter-group::-webkit-scrollbar {
+    display: none;
+  }
+
+  .status-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 7px 12px;
+    font-size: 0.775rem;
   }
 
   .btn-refresh {
@@ -1372,7 +1406,7 @@ export default {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .admin-portal {
     padding: 14px 10px 40px;
   }
@@ -1390,11 +1424,16 @@ export default {
   .kpi-icon {
     width: 44px;
     height: 44px;
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .kpi-val {
     font-size: 1.25rem;
+  }
+
+  .highlight-revenue .kpi-val.revenue {
+    font-size: 1.15rem;
+    word-break: break-all;
   }
 
   .specs-grid {
@@ -1405,21 +1444,25 @@ export default {
     padding: 14px 12px;
   }
 
-  .status-filter-group {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-  }
-
-  .status-btn {
-    text-align: center;
-    padding: 6px 4px;
-    font-size: 0.725rem;
-  }
-
   .btn-refresh {
     width: 100%;
     justify-content: center;
+  }
+
+  .order-card-bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .order-card-select-wrap {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .mobile-select {
+    flex: 1;
+    max-width: 200px;
   }
 }
 </style>

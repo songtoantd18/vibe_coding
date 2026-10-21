@@ -204,7 +204,7 @@
       <div class="footer-inner">
         <p>© 2026 TechStore • Xây dựng theo phương pháp <strong>Vibe Coding</strong> với Vue 2.7, Node.js & Aiven MySQL.</p>
         <div class="footer-meta">
-          <span>Backend API: <code>http://localhost:5000/api/orders</code></span>
+          <span>Backend API: <code>{{ apiBaseUrl }}/api/orders</code></span>
           <span>Database: <code>Aiven Cloud (techstore_db)</code></span>
         </div>
       </div>
@@ -233,6 +233,7 @@ export default {
   },
   data() {
     return {
+      apiBaseUrl: API_BASE_URL,
       currentView: 'store',
       isAdminLoggedIn: false,
       currentAdmin: null,
@@ -893,7 +894,7 @@ export default {
   color: var(--color-accent);
 }
 
-/* Responsive for Mobile 375px */
+/* Responsive for Mobile 768px down to 320px */
 @media (max-width: 768px) {
   .header-inner {
     flex-wrap: wrap;
@@ -941,22 +942,54 @@ export default {
   .slice-badge {
     display: none;
   }
-  .hero-title {
-    font-size: 1.75rem;
+  .main-content {
+    padding: 20px 12px 50px;
   }
-  .products-grid {
-    grid-template-columns: 1fr;
+  .hero-title {
+    font-size: 1.6rem;
+    letter-spacing: -0.5px;
+  }
+  .hero-desc {
+    font-size: 0.875rem;
   }
   .controls-section {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+  }
+  .category-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    scrollbar-width: none;
+    padding-bottom: 6px;
+  }
+  .category-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 6px 14px;
+    font-size: 0.8rem;
   }
   .sort-wrap {
     justify-content: space-between;
+    width: 100%;
+  }
+  .products-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
   .footer-inner {
     flex-direction: column;
     text-align: center;
+    gap: 12px;
   }
 }
 </style>
